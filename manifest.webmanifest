@@ -1,0 +1,9 @@
+{
+  "name": "Resonant Translation Engine",
+  "short_name": "RTE",
+  "description": "Локальный EN ↔ RU переводчик в браузере",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#07111f",
+  "theme_color": "#07111f"
+}
