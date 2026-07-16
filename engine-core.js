@@ -1,4 +1,4 @@
-export const APP_VERSION = '2.0.0-rc.1';
+export const APP_VERSION = '2.0.0-rc.2';
 export const LIBRARY_VERSION = '3.7.2';
 
 export const DEFAULT_GLOSSARY = Object.freeze([

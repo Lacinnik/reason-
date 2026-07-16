@@ -156,10 +156,10 @@ function backendAttempts() {
   const mode = settings.deviceMode;
   const webgpuAvailable = Boolean(navigator.gpu);
   const attempts = [];
-  if (mode === 'webgpu' || (mode === 'auto' && webgpuAvailable && !isAppleSafari())) {
-    attempts.push({ device: 'webgpu', dtype: 'q8', label: 'WebGPU · q8' });
+  if (mode === 'webgpu' && webgpuAvailable && !isAppleSafari()) {
+    attempts.push({ device: 'webgpu', dtype: 'fp16', label: 'WebGPU · fp16 (эксперимент)' });
   }
-  attempts.push({ device: null, dtype: 'q8', label: 'WASM · q8' });
+  attempts.push({ device: null, dtype: 'q8', label: 'WASM · q8 (надёжно)' });
   return attempts;
 }
 
@@ -261,6 +261,16 @@ function normalizePipelineOutput(result) {
     .filter(Boolean);
 }
 
+function looksDegenerateTranslation(source, translation) {
+  const output = String(translation || '').trim();
+  if (!output) return true;
+  if ((output.match(/\.1%/gu) || []).length >= 3) return true;
+  const tokens = normalizeText(output).split(/[^\p{L}\p{N}%]+/u).filter(Boolean);
+  if (tokens.length >= 24 && (new Set(tokens).size / tokens.length) < 0.32) return true;
+  const sourceLength = Math.max(1, String(source || '').trim().length);
+  return output.length > Math.max(480, sourceLength * 10);
+}
+
 async function translateSegment(segmentText, dir, {
   candidateCount = 1,
   glossary = glossaryEntries,
@@ -318,6 +328,9 @@ async function translateSegment(segmentText, dir, {
     return restoreInvariants(glossaryRestored, invariantProtected.placeholders);
   });
   if (!restored.length) throw new Error('Модель не вернула текст перевода.');
+  if (restored.every((item) => looksDegenerateTranslation(segmentText, item))) {
+    throw new Error('Модель вернула деградировавший результат. Выберите WASM, обновите страницу и повторите перевод.');
+  }
   if (candidateCount > 1 && bestMemory?.item?.target) {
     const memoryCandidate = bestMemory.item.target.trim();
     if (memoryCandidate && !restored.some((item) => normalizeText(item) === normalizeText(memoryCandidate))) {

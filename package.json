@@ -1,6 +1,6 @@
 {
   "name": "resonant-translation-engine",
-  "version": "2.0.0-rc.1",
+  "version": "2.0.0-rc.2",
   "private": true,
   "type": "module",
   "description": "Resonant Translation Engine v2: локальный EN ↔ RU переводчик с памятью, словарём, сегментацией и обратной проверкой.",
