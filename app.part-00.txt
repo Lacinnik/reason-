@@ -1,0 +1,160 @@
+// engine-core.js
+var APP_VERSION = "0.2.0";
+var LIBRARY_VERSION = "3.7.2";
+var DEFAULT_GLOSSARY = Object.freeze([
+  { id: "g-field", en: "field", ru: "\u043F\u043E\u043B\u0435" },
+  { id: "g-coherence", en: "coherence", ru: "\u043A\u043E\u0433\u0435\u0440\u0435\u043D\u0442\u043D\u043E\u0441\u0442\u044C" },
+  { id: "g-measure", en: "measure", ru: "\u043C\u0435\u0440\u0430" },
+  { id: "g-source", en: "source", ru: "\u0438\u0441\u0442\u043E\u0447\u043D\u0438\u043A" },
+  { id: "g-subject", en: "subject", ru: "\u0441\u0443\u0431\u044A\u0435\u043A\u0442" },
+  { id: "g-form", en: "form", ru: "\u0444\u043E\u0440\u043C\u0430" },
+  { id: "g-resonance", en: "resonance", ru: "\u0440\u0435\u0437\u043E\u043D\u0430\u043D\u0441" },
+  { id: "g-architectonics", en: "architectonics", ru: "\u0430\u0440\u0445\u0438\u0442\u0435\u043A\u0442\u043E\u043D\u0438\u043A\u0430" }
+]);
+var clamp01 = (value) => Math.max(0, Math.min(1, Number.isFinite(value) ? value : 0));
+function normalizeText(value = "") {
+  return String(value).normalize("NFKC").replace(/[\u00A0\u2007\u202F]/g, " ").replace(/[ \t]+/g, " ").replace(/\s*\n\s*/g, "\n").trim().toLocaleLowerCase();
+}
+function hashString(value = "") {
+  let hash = 2166136261;
+  const text = String(value);
+  for (let i = 0; i < text.length; i += 1) {
+    hash ^= text.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
+  }
+  return (hash >>> 0).toString(36);
+}
+function sentenceParts(text, locale) {
+  if (typeof Intl !== "undefined" && Intl.Segmenter) {
+    try {
+      const segmenter = new Intl.Segmenter(locale, { granularity: "sentence" });
+      return [...segmenter.segment(text)].map((part) => part.segment).filter(Boolean);
+    } catch {
+    }
+  }
+  return text.match(/[^.!?…]+(?:[.!?…]+[”»"')\]]*)?\s*/gu) || [text];
+}
+function hardWrap(text, maxChars) {
+  const words = text.trim().split(/\s+/u).filter(Boolean);
+  if (!words.length) return [];
+  const chunks = [];
+  let current = "";
+  for (const word of words) {
+    if (!current) {
+      current = word;
+      continue;
+    }
+    if (current.length + 1 + word.length <= maxChars) {
+      current += ` ${word}`;
+    } else {
+      chunks.push(current);
+      current = word;
+    }
+  }
+  if (current) chunks.push(current);
+  return chunks;
+}
+function splitOversizedSentence(sentence, maxChars) {
+  if (sentence.length <= maxChars) return [sentence.trim()];
+  const clauses = (sentence.match(/[^,;:—–-]+(?:[,;:—–-]+|$)\s*/gu) || [sentence]).map((part) => part.trim()).filter(Boolean);
+  if (clauses.length <= 1) return hardWrap(sentence, maxChars);
+  const chunks = [];
+  let current = "";
+  for (const clause of clauses) {
+    if (!current) {
+      current = clause;
+    } else if (current.length + 1 + clause.length <= maxChars) {
+      current += ` ${clause}`;
+    } else {
+      chunks.push(...hardWrap(current, maxChars));
+      current = clause;
+    }
+  }
+  if (current) chunks.push(...hardWrap(current, maxChars));
+  return chunks;
+}
+function splitTextIntoSegments(text, { maxChars = 420, locale = "ru" } = {}) {
+  const source = String(text || "").replace(/\r\n?/g, "\n");
+  if (!source.trim()) return [];
+  const blocks = source.split(/(\n{2,})/u);
+  const segments = [];
+  let pendingPrefix = "";
+  for (const block of blocks) {
+    if (!block) continue;
+    if (/^\n{2,}$/u.test(block)) {
+      pendingPrefix += block;
+      continue;
+    }
+    const leading = block.match(/^\s*/u)?.[0] || "";
+    const trailing = block.match(/\s*$/u)?.[0] || "";
+    const body = block.trim();
+    if (!body) {
+      pendingPrefix += block;
+      continue;
+    }
+    const sentences = sentenceParts(body, locale).flatMap((sentence) => splitOversizedSentence(sentence, maxChars)).filter(Boolean);
+    let current = "";
+    let first = true;
+    for (const sentence of sentences) {
+      const clean = sentence.trim();
+      if (!clean) continue;
+      if (!current) {
+        current = clean;
+      } else if (current.length + 1 + clean.length <= maxChars) {
+        current += ` ${clean}`;
+      } else {
+        segments.push({
+          text: current,
+          prefix: first ? `${pendingPrefix}${leading}` : " "
+        });
+        pendingPrefix = "";
+        first = false;
+        current = clean;
+      }
+    }
+    if (current) {
+      segments.push({
+        text: current,
+        prefix: first ? `${pendingPrefix}${leading}` : " "
+      });
+      pendingPrefix = trailing;
+    } else {
+      pendingPrefix += `${leading}${trailing}`;
+    }
+  }
+  if (pendingPrefix && segments.length) {
+    segments[segments.length - 1].suffix = pendingPrefix;
+  }
+  return segments;
+}
+function escapeRegExp(value) {
+  return String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+function caseAwareTarget(source, target) {
+  if (!source) return target;
+  if (source === source.toLocaleUpperCase()) return target.toLocaleUpperCase();
+  if (source[0] === source[0].toLocaleUpperCase()) {
+    return target.charAt(0).toLocaleUpperCase() + target.slice(1);
+  }
+  return target;
+}
+function directionTerms(entry, direction2) {
+  return direction2 === "en-ru" ? { source: entry.en, target: entry.ru } : { source: entry.ru, target: entry.en };
+}
+function maskGlossary(text, entries = [], direction2 = "en-ru") {
+  let masked = String(text || "");
+  const placeholders = [];
+  const sorted = [...entries].filter((entry) => entry?.en?.trim() && entry?.ru?.trim()).sort((a, b) => directionTerms(b, direction2).source.length - directionTerms(a, direction2).source.length);
+  for (const entry of sorted) {
+    const { source, target } = directionTerms(entry, direction2);
+    const term = source.trim();
+    const boundary = `(^|[^\\p{L}\\p{N}_])(${escapeRegExp(term)})(?=$|[^\\p{L}\\p{N}_])`;
+    let index = 0;
+    const regex = new RegExp(boundary, "giu");
+    masked = masked.replace(regex, (match, prefix, found) => {
+      const placeholder = `RTE${placeholders.length}TOKEN`;
+      placeholders.push({
+        placeholder,
+        source: found,
+        target: caseAwareTarget(found, target.trim()),
+        entryId:
