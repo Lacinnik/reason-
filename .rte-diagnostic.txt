@@ -1,0 +1,31 @@
+FILES
+total 40
+-rw-r--r-- 1 runner runner 12000 Jul 16 19:49 chunk-00
+-rw-r--r-- 1 runner runner 12000 Jul 16 19:49 chunk-01
+-rw-r--r-- 1 runner runner 10444 Jul 16 19:49 chunk-02
+-rw-r--r-- 1 runner runner     9 Jul 16 19:49 trigger
+CHUNK SIZES
+12000 .rte-upload/chunk-00
+12000 .rte-upload/chunk-01
+10444 .rte-upload/chunk-02
+34444 total
+BASE64 SIZE
+34444 /tmp/rte-v02.b64
+BASE64 STATUS=0
+GZIP SIZE
+25831 /tmp/rte-v02.tar.gz
+
+gzip: /tmp/rte-v02.tar.gz: invalid compressed data--crc error
+
+gzip: /tmp/rte-v02.tar.gz: invalid compressed data--length error
+GZIP STATUS=1
+CHANGELOG.md
+README.md
+tar: Skipping to next header
+
+gzip: stdin: invalid compressed data--crc error
+
+gzip: stdin: invalid compressed data--length error
+tar: Child returned status 1
+tar: Error is not recoverable: exiting now
+TAR STATUS=2
