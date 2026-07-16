@@ -1,10 +1,6 @@
 name: Assemble RTE v0.2 branch
 
-on:
-  push:
-    branches: [main]
-    paths: [.github/workflows/assemble-rte-v02-runner.yml]
-  workflow_dispatch:
+on: push
 
 permissions:
   contents: write
