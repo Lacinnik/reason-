@@ -1,0 +1,53 @@
+name: Verify RTE v2
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [feature/rte-v2]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: rte-v2-verify-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install locked package
+        run: npm ci --ignore-scripts
+
+      - name: Syntax, unit and static package checks
+        run: npm run check
+
+      - name: HTTP smoke test
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m http.server 4173 >/tmp/rte-http.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          for attempt in {1..20}; do
+            if curl --fail --silent http://127.0.0.1:4173/index.html >/tmp/rte-index.html; then
+              break
+            fi
+            sleep 0.25
+          done
+          grep -q 'Resonant Translation Engine' /tmp/rte-index.html
+          for asset in app.js engine-core.js storage.js styles.css sw.js manifest.webmanifest vendor/transformers-3.7.2.js; do
+            curl --fail --silent --output /dev/null "http://127.0.0.1:4173/$asset"
+          done
