@@ -1,0 +1,74 @@
+name: Deploy RTE v2 preview
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  verify-and-deploy-preview:
+    if: github.event_name == 'workflow_dispatch' || github.head_ref == 'feature/rte-v2'
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}preview/rte-v2/
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout current main site
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: site-main
+
+      - name: Checkout RTE v2 candidate
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || 'feature/rte-v2' }}
+          path: site-preview
+
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: site-preview/package-lock.json
+
+      - name: Verify candidate
+        working-directory: site-preview
+        run: |
+          npm ci --ignore-scripts
+          npm run check
+
+      - name: Build preview tree
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p site-main/preview/rte-v2
+          rsync -a --delete \
+            --exclude '.git' \
+            --exclude '.github' \
+            --exclude 'node_modules' \
+            site-preview/ site-main/preview/rte-v2/
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site-main
+
+      - name: Deploy preview
+        id: deployment
+        uses: actions/deploy-pages@v4
