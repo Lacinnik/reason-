@@ -1,0 +1,24 @@
+name: Fix RTE v2 runtime
+
+on:
+  push:
+    branches: [feature/rte-v2]
+    paths:
+      - .github/workflows/fix-rte-v2-runtime.yml
+
+permissions:
+  contents: write
+
+jobs:
+  fix-runtime:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout candidate branch
+        uses: actions/checkout@v4
+        with:
+          ref: feature/rte-v2
+          fetch-depth: 0
+
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4
