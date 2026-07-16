@@ -20,29 +20,33 @@ jobs:
           fetch-depth: 0
           show-progress: false
 
-      - name: Reconstruct verified source package
+      - name: Diagnose package
         shell: bash
         run: |
-          set -euo pipefail
-          ls -l .rte-upload
-          wc -c .rte-upload/chunk-*
-          cat .rte-upload/chunk-* > /tmp/rte-v02.b64
-          wc -c /tmp/rte-v02.b64
-          base64 --decode /tmp/rte-v02.b64 > /tmp/rte-v02.tar.gz
-          wc -c /tmp/rte-v02.tar.gz
-          gzip -t /tmp/rte-v02.tar.gz
-          tar -tzf /tmp/rte-v02.tar.gz | head -40
-          rm -f app.part-*.txt bundle-manifest.txt
-          tar -xzf /tmp/rte-v02.tar.gz -C .
-          rm -rf .rte-upload
-          rm -f .github/workflows/assemble-rte-v02.yml
-
-      - name: Commit assembled package
-        shell: bash
-        run: |
-          set -euo pipefail
+          set +e
+          if [ -f .rte-diagnostic.txt ]; then
+            echo "Diagnostic already recorded."
+            exit 0
+          fi
+          {
+            echo "FILES"
+            ls -l .rte-upload
+            echo "CHUNK SIZES"
+            wc -c .rte-upload/chunk-*
+            cat .rte-upload/chunk-* > /tmp/rte-v02.b64
+            echo "BASE64 SIZE"
+            wc -c /tmp/rte-v02.b64
+            base64 --decode /tmp/rte-v02.b64 > /tmp/rte-v02.tar.gz
+            echo "BASE64 STATUS=$?"
+            echo "GZIP SIZE"
+            wc -c /tmp/rte-v02.tar.gz
+            gzip -t /tmp/rte-v02.tar.gz
+            echo "GZIP STATUS=$?"
+            tar -tzf /tmp/rte-v02.tar.gz
+            echo "TAR STATUS=$?"
+          } > .rte-diagnostic.txt 2>&1
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A
-          git commit -m "RTE v0.2 Resonance Memory"
+          git add .rte-diagnostic.txt
+          git commit -m "Record RTE package diagnostics"
           git push origin HEAD:agent/rte-v0.2-resonance-memory
