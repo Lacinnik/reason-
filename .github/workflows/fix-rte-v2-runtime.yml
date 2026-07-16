@@ -22,3 +22,98 @@ jobs:
 
       - name: Use Node.js 22
         uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Repair safe backend and reject degraded output
+        shell: python
+        run: |
+          from pathlib import Path
+
+          app = Path('app.js')
+          text = app.read_text(encoding='utf-8')
+          old = """function backendAttempts() {
+            const mode = settings.deviceMode;
+            const webgpuAvailable = Boolean(navigator.gpu);
+            const attempts = [];
+            if (mode === 'webgpu' || (mode === 'auto' && webgpuAvailable && !isAppleSafari())) {
+              attempts.push({ device: 'webgpu', dtype: 'q8', label: 'WebGPU · q8' });
+            }
+            attempts.push({ device: null, dtype: 'q8', label: 'WASM · q8' });
+            return attempts;
+          }
+          """
+          new = """function backendAttempts() {
+            const mode = settings.deviceMode;
+            const webgpuAvailable = Boolean(navigator.gpu);
+            const attempts = [];
+            if (mode === 'webgpu' && webgpuAvailable && !isAppleSafari()) {
+              attempts.push({ device: 'webgpu', dtype: 'fp16', label: 'WebGPU · fp16 (эксперимент)' });
+            }
+            attempts.push({ device: null, dtype: 'q8', label: 'WASM · q8 (надёжно)' });
+            return attempts;
+          }
+          """
+          if old not in text:
+            raise SystemExit('backend block not found')
+          text = text.replace(old, new)
+
+          anchor = """function normalizePipelineOutput(result) {
+            const list = Array.isArray(result) ? result : [result];
+            return list
+              .map((item) => item?.translation_text ?? item?.generated_text ?? '')
+              .map((text) => String(text).trim())
+              .filter(Boolean);
+          }
+          """
+          guard = anchor + """
+          function looksDegenerateTranslation(source, translation) {
+            const output = String(translation || '').trim();
+            if (!output) return true;
+            if ((output.match(/\\.1%/gu) || []).length >= 3) return true;
+            const tokens = normalizeText(output).split(/[^\\p{L}\\p{N}%]+/u).filter(Boolean);
+            if (tokens.length >= 24 && (new Set(tokens).size / tokens.length) < 0.32) return true;
+            const sourceLength = Math.max(1, String(source || '').trim().length);
+            return output.length > Math.max(480, sourceLength * 10);
+          }
+          """
+          if anchor not in text:
+            raise SystemExit('normalizer block not found')
+          text = text.replace(anchor, guard)
+
+          old_check = "if (!restored.length) throw new Error('Модель не вернула текст перевода.');"
+          new_check = old_check + "\n  if (restored.every((item) => looksDegenerateTranslation(segmentText, item))) {\n    throw new Error('Модель вернула деградировавший результат. Выберите WASM, обновите страницу и повторите перевод.');\n  }"
+          if old_check not in text:
+            raise SystemExit('output check not found')
+          text = text.replace(old_check, new_check)
+          app.write_text(text, encoding='utf-8')
+
+          index = Path('index.html')
+          html = index.read_text(encoding='utf-8')
+          html = html.replace('Авто · безопасно', 'Авто · WASM q8 (надёжно)')
+          html = html.replace('WebGPU → fallback', 'WebGPU fp16 · эксперимент → fallback')
+          index.write_text(html, encoding='utf-8')
+
+          core = Path('engine-core.js')
+          core.write_text(core.read_text(encoding='utf-8').replace("2.0.0-rc.1", "2.0.0-rc.2"), encoding='utf-8')
+          sw = Path('sw.js')
+          sw.write_text(sw.read_text(encoding='utf-8').replace("2.0.0-rc.1", "2.0.0-rc.2"), encoding='utf-8')
+          pkg = Path('package.json')
+          pkg.write_text(pkg.read_text(encoding='utf-8').replace('"2.0.0-rc.1"', '"2.0.0-rc.2"'), encoding='utf-8')
+          lock = Path('package-lock.json')
+          lock.write_text(lock.read_text(encoding='utf-8').replace('"2.0.0-rc.1"', '"2.0.0-rc.2"'), encoding='utf-8')
+
+      - name: Verify repair
+        run: npm ci --ignore-scripts && npm run check
+
+      - name: Commit repair and remove one-time workflow
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm .github/workflows/fix-rte-v2-runtime.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Fix degraded translation backend"
+          git push origin HEAD:feature/rte-v2
