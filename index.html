@@ -4,55 +4,171 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#07111f" />
-  <meta name="description" content="Resonant Translation Engine — локальный EN ↔ RU переводчик в браузере." />
+  <meta name="description" content="Resonant Translation Engine — локальный EN ↔ RU переводчик с памятью, словарём и глубокой проверкой." />
   <link rel="manifest" href="manifest.webmanifest" />
-  <title>Resonant Translation Engine</title>
-  <style>
-    :root{--bg:#07111f;--panel:#0d1b2d;--panel2:#11243a;--text:#edf7ff;--muted:#93a9bb;--line:#24435c;--accent:#47d7c7;--accent2:#e5c465;--danger:#ff7d7d}
-    *{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top,#10283d 0,#07111f 48%,#040a11 100%);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;min-height:100vh}
-    button,textarea,select{font:inherit}.shell{width:min(1040px,100%);margin:auto;padding:20px 16px 48px}.head{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin:8px 0 22px}.brand h1{font-size:clamp(25px,5vw,42px);margin:0;line-height:1}.brand p{margin:8px 0 0;color:var(--muted)}.sig{border:1px solid var(--line);border-radius:999px;padding:8px 12px;color:var(--accent);white-space:nowrap}.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.card{background:linear-gradient(180deg,rgba(17,36,58,.95),rgba(9,24,39,.96));border:1px solid var(--line);border-radius:20px;padding:16px;box-shadow:0 20px 60px rgba(0,0,0,.25)}.label{display:flex;justify-content:space-between;align-items:center;color:var(--muted);font-size:13px;margin-bottom:9px}.lang{color:var(--accent2);font-weight:700}textarea{width:100%;min-height:250px;resize:vertical;border:0;outline:0;background:rgba(2,10,18,.48);color:var(--text);border-radius:14px;padding:16px;line-height:1.5}.output{white-space:pre-wrap}.controls{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0}.btn{border:1px solid var(--line);background:var(--panel2);color:var(--text);padding:11px 15px;border-radius:13px;cursor:pointer}.btn:hover{border-color:var(--accent)}.btn.primary{background:linear-gradient(135deg,#27b9aa,#207f98);border-color:transparent;font-weight:750}.btn:disabled{opacity:.45;cursor:not-allowed}.status{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px}.metric{background:rgba(4,14,23,.52);border:1px solid var(--line);border-radius:14px;padding:12px}.metric b{display:block;font-size:13px}.metric span{display:block;color:var(--muted);font-size:12px;margin-top:5px;overflow-wrap:anywhere}.log{margin-top:14px;color:var(--muted);font-size:13px;min-height:20px}.error{color:var(--danger)}.resonance{margin-top:14px}.bar{height:8px;background:#07101b;border-radius:99px;overflow:hidden;border:1px solid var(--line)}.fill{height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .25s}.footer{margin-top:18px;color:var(--muted);font-size:12px;line-height:1.5}.advanced{margin-top:14px}.advanced summary{cursor:pointer;color:var(--muted)}.advanced .inside{display:grid;gap:8px;margin-top:10px}.advanced input{width:100%;background:#06101b;color:var(--text);border:1px solid var(--line);border-radius:10px;padding:10px}
-    @media(max-width:760px){.grid{grid-template-columns:1fr}.status{grid-template-columns:1fr 1fr}.head{align-items:flex-start;flex-direction:column}.sig{font-size:12px}textarea{min-height:190px}}
-  </style>
+  <link rel="icon" href="icon.svg" type="image/svg+xml" />
+  <title>RTE v2 — Resonant Translation Engine</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-<main class="shell">
-  <header class="head">
-    <div class="brand"><h1>Resonant Translation Engine</h1><p>EN ↔ RU · локальная нейромодель · модульный офлайн-кэш</p></div>
-    <div class="sig">RTE · α / Q / Cₘ / T</div>
-  </header>
+  <main class="shell">
+    <header class="head">
+      <div class="brand">
+        <h1>Resonant Translation Engine</h1>
+        <p>EN ↔ RU · локальная нейромодель · память формы · обратная мера</p>
+      </div>
+      <div class="badges" aria-label="Состояние приложения">
+        <span id="versionBadge" class="badge">RTE</span>
+        <span id="networkBadge" class="badge">проверяю сеть</span>
+        <span id="backendBadge" class="badge">движок не загружен</span>
+      </div>
+    </header>
 
-  <section class="controls card">
-    <button id="swap" class="btn">English → Русский</button>
-    <button id="translate" class="btn primary">Перевести</button>
-    <button id="copy" class="btn">Копировать</button>
-    <button id="clear" class="btn">Очистить</button>
-    <button id="prepare" class="btn">Подготовить офлайн</button>
-  </section>
+    <section class="command card" aria-label="Основные команды">
+      <button id="swap" class="button" type="button">English → Русский</button>
+      <button id="translate" class="button primary" type="button">Перевести</button>
+      <button id="approve" class="button gold" type="button">Принять в память</button>
+      <span class="command-spacer"></span>
+      <button id="copy" class="button" type="button">Копировать</button>
+      <button id="clear" class="button" type="button">Очистить</button>
+    </section>
 
-  <section class="grid">
-    <article class="card"><div class="label"><span>Исходный текст</span><span id="sourceLang" class="lang">English</span></div><textarea id="source" placeholder="Введите текст…"></textarea></article>
-    <article class="card"><div class="label"><span>Перевод</span><span id="targetLang" class="lang">Русский</span></div><textarea id="target" class="output" readonly placeholder="Результат появится здесь"></textarea></article>
-  </section>
+    <section class="mode-strip card" aria-label="Режим перевода">
+      <label class="option">
+        <span>Формы</span>
+        <select id="candidateCount">
+          <option value="1">1 · быстро</option>
+          <option value="3">3 · резонанс</option>
+        </select>
+      </label>
+      <label class="option">
+        <span>Глубина</span>
+        <span class="switch-line"><input id="deepCheck" type="checkbox" /> обратный перевод</span>
+      </label>
+      <label class="option">
+        <span>Термины</span>
+        <span class="switch-line"><input id="glossaryEnabled" type="checkbox" checked /> удерживать словарь</span>
+      </label>
+      <label class="option">
+        <span>Контур</span>
+        <select id="deviceMode">
+          <option value="auto">Авто · безопасно</option>
+          <option value="wasm">WASM · надёжно</option>
+          <option value="webgpu">WebGPU → fallback</option>
+        </select>
+      </label>
+      <label class="option">
+        <span>Сегмент</span>
+        <select id="segmentSize">
+          <option value="320">320 · точнее</option>
+          <option value="420">420 · баланс</option>
+          <option value="560">560 · быстрее</option>
+        </select>
+      </label>
+    </section>
 
-  <section class="card resonance">
-    <div class="label"><span>Резонанс конфигурации</span><span id="resonanceValue">0%</span></div>
-    <div class="bar"><div id="resonanceFill" class="fill"></div></div>
-    <div class="status">
-      <div class="metric"><b>α · соответствие</b><span id="alpha">—</span></div>
-      <div class="metric"><b>Q · качество</b><span id="quality">—</span></div>
-      <div class="metric"><b>Cₘ · контейнер</b><span id="container">—</span></div>
-      <div class="metric"><b>T · текучесть</b><span id="flow">—</span></div>
+    <section class="translator-grid">
+      <article class="text-card card">
+        <div class="label"><span>Исходный текст</span><span id="sourceLang" class="lang">English</span></div>
+        <textarea id="source" spellcheck="true" placeholder="Enter English text…"></textarea>
+        <div class="hint-line"><span>Длинный текст автоматически делится по смысловым границам.</span><span id="sourceCount">0 зн.</span></div>
+      </article>
+      <article class="text-card card">
+        <div class="label"><span>Перевод</span><span id="targetLang" class="lang">Русский</span></div>
+        <textarea id="target" spellcheck="true" placeholder="Перевод появится здесь…"></textarea>
+        <div class="hint-line"><span class="editable-note">Результат редактируется; правку можно принять в память.</span><span id="targetCount">0 зн.</span></div>
+      </article>
+    </section>
+
+    <div class="progress-wrap">
+      <div id="progress" class="progress" hidden><div id="progressFill" class="progress-fill"></div></div>
     </div>
-    <div id="log" class="log">Движок не загружен. Первый перевод требует интернет.</div>
-    <details class="advanced"><summary>Диагностика и модели</summary><div class="inside">
-      <label>EN → RU<input id="modelEnRu" value="Xenova/opus-mt-en-ru"></label>
-      <label>RU → EN<input id="modelRuEn" value="Xenova/opus-mt-ru-en"></label>
-      <div class="footer">Модель загружается только при первом использовании соответствующего направления и сохраняется в Cache Storage/IndexedDB браузера. На iPhone объём кэша и скорость зависят от версии Safari и свободной памяти.</div>
-    </div></details>
-  </section>
 
-  <footer class="footer">При первом запуске страница скачивает библиотеку и выбранную модель. После успешного кэширования повторный запуск возможен без сети. Для надёжного офлайн-режима добавьте страницу на экран «Домой» после первой полной загрузки.</footer>
-</main>
-<script type="module" src="app.js"></script>
+    <section id="candidatesSection" class="candidates card" hidden>
+      <h2 class="section-title">Кандидаты формы <span>нажмите, чтобы выбрать</span></h2>
+      <div id="candidatesList" class="candidate-list"></div>
+    </section>
+
+    <section class="resonance card">
+      <div class="label"><span>Резонанс конфигурации</span><span id="resonanceValue">0%</span></div>
+      <div class="bar"><div id="resonanceFill" class="fill"></div></div>
+      <div class="metrics">
+        <div class="metric"><b>α · соответствие</b><span id="alpha">—</span></div>
+        <div class="metric"><b>Q · качество</b><span id="quality">—</span></div>
+        <div class="metric"><b>Cₘ · контейнер</b><span id="container">—</span></div>
+        <div class="metric"><b>T · текучесть</b><span id="flow">—</span></div>
+      </div>
+      <div id="log" class="log" role="status" aria-live="polite">Подготавливаю локальный контур…</div>
+    </section>
+
+    <section class="workspace">
+      <details class="card" open>
+        <summary>Память и терминологический контур</summary>
+        <div class="details-body two-columns">
+          <section class="subpanel">
+            <h3>Утверждённая память</h3>
+            <p>Точные совпадения возвращаются мгновенно, без запуска нейромодели. Принятые сегменты ускоряют длинные тексты.</p>
+            <div class="stats-line">Записей: <strong id="memoryCount">0</strong></div>
+            <div id="memoryList" class="memory-list"></div>
+            <div class="actions">
+              <button id="exportBundle" class="button" type="button">Экспорт пакета</button>
+              <button id="importBundle" class="button" type="button">Импорт пакета</button>
+              <button id="clearMemory" class="button danger" type="button">Очистить память</button>
+              <input id="bundleFile" type="file" accept="application/json,.json" hidden />
+            </div>
+          </section>
+          <section class="subpanel">
+            <h3>Словарь инвариантов</h3>
+            <p>Утверждённые пары защищаются до перевода и восстанавливаются после него. Это удерживает терминологическую меру.</p>
+            <div class="stats-line">Терминов: <strong id="glossaryCount">0</strong></div>
+            <div class="inline-form">
+              <input id="glossaryEn" type="text" placeholder="English term" />
+              <input id="glossaryRu" type="text" placeholder="Русский термин" />
+              <button id="glossaryAdd" class="button primary" type="button">Добавить</button>
+            </div>
+            <div id="glossaryList" class="term-list"></div>
+          </section>
+        </div>
+      </details>
+
+      <details class="card">
+        <summary>Офлайн-контур и устойчивость</summary>
+        <div class="details-body">
+          <div class="status-grid">
+            <div class="status-card"><span>Библиотека</span><strong id="cacheLibrary" class="status-value">проверка</strong></div>
+            <div class="status-card"><span>Оболочка PWA</span><strong id="cacheShell" class="status-value">проверка</strong></div>
+            <div class="status-card"><span>EN → RU</span><strong id="cacheEnRu" class="status-value">проверка</strong></div>
+            <div class="status-card"><span>RU → EN</span><strong id="cacheRuEn" class="status-value">проверка</strong></div>
+            <div class="status-card"><span>Хранилище</span><strong id="cacheStorage" class="status-value">проверка</strong></div>
+            <div class="status-card"><span>Защита кэша</span><strong id="cachePersistence" class="status-value">проверка</strong></div>
+          </div>
+          <div class="actions">
+            <button id="prepareCurrent" class="button" type="button">Подготовить направление</button>
+            <button id="prepareAll" class="button primary" type="button">Подготовить обе модели</button>
+            <button id="persistStorage" class="button gold" type="button">Защитить хранилище</button>
+            <button id="refreshDiagnostics" class="button" type="button">Обновить статус</button>
+          </div>
+          <p class="footer">Статус «готово» означает, что модель успешно запускалась в этом браузере. Окончательная проверка офлайн-режима — перевод после отключения сети. iOS может очистить кэш при критической нехватке места.</p>
+        </div>
+      </details>
+
+      <details class="card">
+        <summary>Диагностика моделей</summary>
+        <div class="details-body">
+          <div class="model-grid">
+            <label>EN → RU<input id="modelEnRu" type="text" value="Xenova/opus-mt-en-ru" /></label>
+            <label>RU → EN<input id="modelRuEn" type="text" value="Xenova/opus-mt-ru-en" /></label>
+          </div>
+          <p class="footer">Transformers.js зафиксирован локальным загрузчиком в версии 3.7.2 и предварительно кэшируется оболочкой. Вес моделей загружается из Hugging Face только при первом использовании и сохраняется браузером. WebGPU применяется только при доступности и всегда имеет fallback на WASM.</p>
+        </div>
+      </details>
+    </section>
+
+    <footer class="footer">
+      <strong>RTE v2.0.0-rc.1 · Resonant Translation Engine</strong><br />
+      Текст → сегментация → память → словарь → кандидаты → мера → форма. Данные памяти и словаря остаются на устройстве.
+    </footer>
+  </main>
+  <script type="module" src="app.js"></script>
 </body>
 </html>

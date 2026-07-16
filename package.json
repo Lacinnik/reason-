@@ -1,0 +1,16 @@
+{
+  "name": "resonant-translation-engine",
+  "version": "2.0.0-rc.1",
+  "private": true,
+  "type": "module",
+  "description": "Resonant Translation Engine v2: локальный EN ↔ RU переводчик с памятью, словарём, сегментацией и обратной проверкой.",
+  "scripts": {
+    "test": "node --test tests/*.test.mjs",
+    "check": "node --check app.js && node --check engine-core.js && node --check storage.js && node --check sw.js && npm test",
+    "smoke": "node --test tests/static-package.test.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "license": "MIT"
+}
