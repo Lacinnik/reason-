@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="ОСЬ · ТзАрх">
+  <meta name="theme-color" content="#041526">
+  <title>ОСЬ · Тензорная Архитектоника</title>
+  <style>
+    :root{--ink:#eafaff;--muted:#8eaebb;--cyan:#64e6e2;--blue:#0b75a2;--gold:#f2cd78;--dark:#03111e;--glass:rgba(7,34,51,.78);--red:#ff8b82}
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--dark);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}
+    body{position:fixed;inset:0;touch-action:manipulation}
+    button{font:inherit;color:inherit}
+    #field{position:fixed;inset:0;width:100%;height:100%;background:radial-gradient(circle at 50% 35%,#0b3950 0,#041828 42%,#020c15 100%)}
+    #app{position:relative;z-index:2;width:100%;height:100%;max-width:540px;margin:auto;padding:calc(env(safe-area-inset-top) + 10px) 14px calc(env(safe-area-inset-bottom) + 12px);display:flex;flex-direction:column}
+    .screen{display:none;flex:1;min-height:0}.screen.active{display:flex;flex-direction:column;animation:in .45s ease both}@keyframes in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+    .brand{letter-spacing:.24em;font-size:11px;text-transform:uppercase;color:var(--cyan)}
+    .intro{justify-content:center;text-align:center;padding:10px 8px}
+    .sigil{width:172px;height:172px;margin:0 auto 25px;position:relative;display:grid;place-items:center}
+    .sigil:before,.sigil:after{content:"";position:absolute;border:1px solid rgba(100,230,226,.48);border-radius:50%;inset:0;animation:turn 18s linear infinite}
+    .sigil:before{border-style:dashed;inset:15px;animation-direction:reverse;animation-duration:12s}.sigil:after{inset:36px;border-color:rgba(242,205,120,.7);box-shadow:0 0 35px rgba(100,230,226,.18)}
+    @keyframes turn{to{transform:rotate(360deg)}}
+    .axis-mark{height:112px;width:2px;background:linear-gradient(transparent,var(--gold),var(--cyan),transparent);box-shadow:0 0 17px var(--cyan);position:relative}
+    .axis-mark:after{content:"⊕";position:absolute;top:42px;left:50%;transform:translate(-50%,-50%);font-size:31px;color:var(--gold)}
+    h1{font-weight:300;letter-spacing:.16em;font-size:33px;margin:0 0 8px}.intro h2{font-weight:400;font-size:17px;margin:0 0 28px;color:var(--muted)}
+    .thesis{font-family:Georgia,serif;font-size:18px;line-height:1.45;max-width:340px;margin:0 auto 30px;color:#d8edf2}.thesis b{color:var(--gold);font-weight:400}
+    .primary{border:1px solid rgba(100,230,226,.65);background:linear-gradient(135deg,rgba(15,91,112,.8),rgba(6,45,62,.85));border-radius:16px;padding:16px 24px;font-weight:600;letter-spacing:.06em;box-shadow:0 10px 35px rgba(0,0,0,.28),inset 0 0 22px rgba(100,230,226,.07)}
+    .primary:active{transform:scale(.98)}
+    .small-link{border:0;background:none;color:var(--muted);padding:15px;font-size:13px}
+    header{display:flex;align-items:center;justify-content:space-between;height:44px;flex:none}.header-right{display:flex;align-items:center;gap:10px}.round{font-size:12px;color:var(--muted)}.help-btn{width:31px;height:31px;padding:0;border:1px solid rgba(100,230,226,.28);border-radius:50%;background:rgba(4,27,41,.72);color:var(--cyan);font-family:Georgia,serif;font-size:16px}
+    .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;flex:none;margin:4px 0 11px}.stat{background:rgba(4,27,41,.7);border:1px solid rgba(122,193,204,.16);border-radius:11px;padding:8px 9px}.stat-top{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}.stat b{font-size:11px;color:var(--ink)}.bar{height:3px;background:#153644;border-radius:3px;margin-top:6px;overflow:hidden}.fill{height:100%;width:50%;background:linear-gradient(90deg,var(--blue),var(--cyan));transition:width .6s ease}.stat:nth-child(2) .fill{background:linear-gradient(90deg,#9d7a30,var(--gold))}.stat:nth-child(3) .fill{background:linear-gradient(90deg,#7b50bd,#d0a8ff)}
+    .card{position:relative;flex:1;min-height:0;overflow:auto;-webkit-overflow-scrolling:touch;border:1px solid rgba(111,205,213,.24);background:linear-gradient(160deg,rgba(8,42,59,.9),rgba(4,24,38,.92));border-radius:23px;padding:19px 17px 17px;box-shadow:0 18px 50px rgba(0,0,0,.24)}
+    .card::-webkit-scrollbar{display:none}.node-label{font-size:10px;letter-spacing:.18em;color:var(--gold);text-transform:uppercase}.node-title{font-family:Georgia,serif;font-weight:400;font-size:23px;margin:8px 0 7px}.node-text{font-size:15px;line-height:1.38;color:#c8dce2;margin:0 0 16px}
+    .prompt{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:14px 0 8px}
+    .choices{display:grid;gap:7px}.geometries{grid-template-columns:repeat(5,1fr)}.operators{grid-template-columns:repeat(4,1fr)}
+    .choice{border:1px solid rgba(128,188,198,.2);background:rgba(4,24,36,.62);min-height:51px;border-radius:12px;padding:7px 2px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;transition:.18s ease}.choice i{font-style:normal;font-family:Georgia,serif;font-size:19px;color:#a7cad2}.choice span{font-size:9px;color:var(--muted);line-height:1.05}.choice.selected{border-color:var(--gold);background:rgba(141,105,38,.18);box-shadow:inset 0 0 18px rgba(242,205,120,.08)}.choice.selected i{color:var(--gold)}
+    .resolve{width:100%;margin-top:14px;padding:13px;border-radius:13px}.resolve:disabled{opacity:.35;filter:saturate(.3)}
+    .feedback{display:none;margin-top:14px;padding:13px;border-radius:13px;background:rgba(1,15,25,.66);border-left:2px solid var(--cyan);font-size:13px;line-height:1.4}.feedback.show{display:block;animation:in .3s ease}.feedback.bad{border-left-color:var(--red)}.feedback strong{color:var(--gold);font-weight:600}.next{display:none;width:100%;margin-top:10px}.next.show{display:block}
+    .help{justify-content:center}.help-card{overflow:auto;-webkit-overflow-scrolling:touch;padding:23px;background:var(--glass);border:1px solid rgba(100,230,226,.2);border-radius:24px;max-height:100%}.help h2{font-weight:400;margin:5px 0 10px}.help p,.help li{color:#c5d9df;font-size:14px;line-height:1.45}.formula{margin:0 0 17px!important;padding:11px 12px;border-left:2px solid var(--gold);background:rgba(2,17,28,.55);border-radius:0 10px 10px 0}.formula b{color:var(--gold);font-weight:500}.map-section{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--cyan);margin:17px 0 7px}.help-map{display:grid;gap:7px}.help-item{display:grid;grid-template-columns:34px 84px 1fr;align-items:center;gap:7px;background:rgba(2,17,28,.62);border:1px solid rgba(128,188,198,.12);border-radius:11px;padding:9px}.help-item i{font-style:normal;font-family:Georgia,serif;font-size:19px;text-align:center;color:var(--gold)}.help-item b{font-size:11px;color:#d8edf2}.help-item span{font-size:11px;line-height:1.25;color:var(--muted)}.help-note{font-size:12px!important;margin:14px 0}.help-card>.primary{width:100%;margin-top:4px}
+    .end{justify-content:center;text-align:center}.end h2{font-weight:300;letter-spacing:.1em;font-size:28px;margin:10px}.score-ring{width:156px;height:156px;border-radius:50%;margin:18px auto;display:grid;place-items:center;background:conic-gradient(var(--cyan) 0deg,#133543 0);position:relative}.score-ring:after{content:"";position:absolute;inset:7px;background:#061927;border-radius:50%}.score-ring div{z-index:1}.score-ring b{display:block;font-size:35px;font-weight:300;color:var(--gold)}.score-ring span{font-size:11px;color:var(--muted)}.reading{max-width:370px;margin:0 auto 20px;font-family:Georgia,serif;line-height:1.45;color:#d6e9ed}.end-actions{display:grid;gap:9px}.secondary{border:1px solid rgba(131,190,200,.3);background:rgba(4,27,41,.7);border-radius:14px;padding:13px}
+    .toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 18px);transform:translate(-50%,15px);background:#e8f9f8;color:#06202c;padding:10px 16px;border-radius:20px;font-size:12px;opacity:0;pointer-events:none;transition:.3s;z-index:5}.toast.on{opacity:1;transform:translate(-50%,0)}
+    @media(max-height:700px){.card{padding-top:15px}.node-title{font-size:20px;margin:5px 0}.node-text{font-size:13px;margin-bottom:9px}.prompt{margin:9px 0 6px}.choice{min-height:44px}.stats{margin-bottom:7px}.resolve{margin-top:9px;padding:11px}}
+  </style>
+</head>
+<body>
+<canvas id="field"></canvas>
+<main id="app">
+  <section id="intro" class="screen intro active">
+    <div class="brand">Тензорная Архитектоника · опыт 001</div>
+    <div class="sigil"><div class="axis-mark"></div></div>
+    <h1>ОСЬ</h1><h2>игра сохранения сущего</h2>
+    <p class="thesis">Усиливай позицию в градиенте, не теряя <b>осевания</b>.</p>
+    <button class="primary" id="start">КАЛИБРОВКА И ВХОД</button>
+    <button class="small-link" id="rulesLink">посмотреть правила</button>
+  </section>
+
+  <section id="game" class="screen">
+    <header><div class="brand">ОСЬ · ⊕</div><div class="header-right"><div class="round" id="round">УЗЕЛ 1 / 8</div><button class="help-btn" id="gameHelp" aria-label="Памятка">?</button></div></header>
+    <div class="stats">
+      <div class="stat"><div class="stat-top"><span>Ось</span><b id="axisN">72</b></div><div class="bar"><div class="fill" id="axisB"></div></div></div>
+      <div class="stat"><div class="stat-top"><span>Мера</span><b id="measureN">64</b></div><div class="bar"><div class="fill" id="measureB"></div></div></div>
+      <div class="stat"><div class="stat-top"><span>Градиент</span><b id="gradN">0</b></div><div class="bar"><div class="fill" id="gradB"></div></div></div>
+    </div>
+    <article class="card" id="card">
+      <div class="node-label" id="nodeLabel">ИСКАЖЕНИЕ ПОЛЯ</div>
+      <h2 class="node-title" id="nodeTitle"></h2>
+      <p class="node-text" id="nodeText"></p>
+      <div class="prompt">I · Геометрия ситуации</div>
+      <div class="choices geometries" id="geometries"></div>
+      <div class="prompt">II · Оператор действия</div>
+      <div class="choices operators" id="operators"></div>
+      <button class="primary resolve" id="resolve" disabled>ПРОВЕСТИ ОПЕРАТОР</button>
+      <div class="feedback" id="feedback"></div>
+      <button class="secondary next" id="next">СЛЕДУЮЩИЙ УЗЕЛ</button>
+    </article>
+  </section>
+
+  <section id="help" class="screen help">
+    <div class="help-card">
+      <div class="brand">Калибровка входа</div><h2>Сначала распознай. Затем действуй.</h2>
+      <p class="formula"><b>Геометрия</b> отвечает: «Как устроена ситуация?»<br><b>Оператор</b> отвечает: «Что я с ней делаю?»</p>
+      <div class="map-section">I · Геометрии ситуации</div>
+      <div class="help-map">
+        <div class="help-item"><i>△</i><b>Евклид</b><span>Есть отдельные объекты, границы и прямой путь.</span></div>
+        <div class="help-item"><i>⋔</i><b>Лобачевский</b><span>Пути ветвятся: одно начало создаёт несколько будущих.</span></div>
+        <div class="help-item"><i>○</i><b>Риман</b><span>Часть зависит от целого, а поле искривляет локальный путь.</span></div>
+        <div class="help-item"><i>◇</i><b>Проектив</b><span>Видимое меняется вместе с позицией наблюдателя.</span></div>
+        <div class="help-item"><i>⊙</i><b>Супра</b><span>Под изменениями сохраняется инвариант, делающий сущее сущим.</span></div>
+      </div>
+      <div class="map-section">II · Операторы действия</div>
+      <div class="help-map">
+        <div class="help-item"><i>⟂</i><b>Мера</b><span>Ограничить силу проводимостью ситуации: ни больше, ни меньше.</span></div>
+        <div class="help-item"><i>∞</i><b>Связь</b><span>Соединить различное, не уничтожая его различий.</span></div>
+        <div class="help-item"><i>↕</i><b>Ось</b><span>Удержать инвариант и не отдать позицию давлению поля.</span></div>
+        <div class="help-item"><i>✦</i><b>Различение</b><span>Отделить проводящий вектор от шума, роли и привычной проекции.</span></div>
+      </div>
+      <p class="help-note">Пример: если пути расходятся — это <b>Лобачевский</b>. Если нужно выбрать проводящее направление — примени <b>Различение</b>. Памятка доступна в каждом узле по знаку «?».</p>
+      <button class="primary" id="closeHelp">НАЧАТЬ ПРОХОД</button>
+    </div>
+  </section>
+
+  <section id="end" class="screen end">
+    <div class="brand">Калибровка завершена</div><h2 id="endTitle">ПОЗИЦИЯ СОБРАНА</h2>
+    <div class="score-ring" id="scoreRing"><div><b id="score">0</b><span>КОГЕРЕНТНОСТЬ</span></div></div>
+    <p class="reading" id="reading"></p>
+    <div class="end-actions"><button class="primary" id="again">НОВЫЙ ПРОХОД</button><button class="secondary" id="share">СОХРАНИТЬ РЕЗУЛЬТАТ</button></div>
+  </section>
+</main>
+<div class="toast" id="toast">Результат скопирован</div>
+<script>
+(()=>{
+  'use strict';
+  const G=[['euclid','△','Евклид'],['lob','⋔','Лобач.'],['riemann','○','Риман'],['projective','◇','Проект.'],['supra','⊙','Супра']];
+  const O=[['measure','⟂','Мера'],['love','∞','Связь'],['axis','↕','Ось'],['discern','✦','Различ.']];
+  const nodes=[
+    {t:'Прямая требует границы',x:'На тебя одновременно направлены три чужих запроса. Каждый объявлен срочным, но только один принадлежит твоей задаче.',g:'euclid',o:'measure',nearG:['projective'],nearO:['discern'],why:'Здесь работает конечная геометрия границ: отделить своё от чужого и дать каждому запросу ровно его меру.'},
+    {t:'Путь начинает ветвиться',x:'Исходный способ закрыт. Поле показывает несколько обходных направлений, каждое меняет масштаб будущего результата.',g:'lob',o:'discern',nearG:['projective'],nearO:['measure'],why:'Расходящиеся траектории — пространство Лобачевского. Различение выбирает не самый громкий, а проводящий вектор.'},
+    {t:'Целое искривляет маршрут',x:'Локально верный шаг ухудшает состояние всей системы. Причина находится не в шаге, а в кривизне общего поля.',g:'riemann',o:'love',nearG:['supra'],nearO:['discern'],why:'В римановом пространстве локальное определяется целым. Связь возвращает части в общий контур.'},
+    {t:'Наблюдатель вошёл в чертёж',x:'Конфликт кажется неразрешимым, пока ты смотришь из привычной роли. При смене позиции линии неожиданно сходятся.',g:'projective',o:'discern',nearG:['riemann'],nearO:['axis'],why:'Проективная геометрия меняет картину сменой точки зрения. Различение отделяет позицию от существа вопроса.'},
+    {t:'Шум атакует сущее',x:'Десятки признаков требуют реакции, однако под ними сохраняется нечто неизменное, что нельзя вывести из суммы деталей.',g:'supra',o:'axis',nearG:['riemann'],nearO:['measure'],why:'Супра удерживает инвариант, а осевание приводит структуру в состояние, при котором он становится сущим.'},
+    {t:'Сила превысила проводимость',x:'Ты можешь продавить решение прямо сейчас. Поле формально подчинится, но его внутренняя связность начнёт разрушаться.',g:'euclid',o:'measure',nearG:['riemann'],nearO:['love'],why:'Граница действия уже видна. Мера ограничивает силу проводимостью среды и сохраняет результат после воздействия.'},
+    {t:'Различия стали разрывами',x:'Части проекта говорят на разных языках и перестали узнавать общий замысел. Унификация уничтожит их сильные стороны.',g:'riemann',o:'love',nearG:['lob'],nearO:['axis'],why:'Нужно не выровнять части, а связать их кривизной целого. Оператор связи удерживает различия в единой форме.'},
+    {t:'Успех уводит от источника',x:'Градиент растёт: признание, скорость, масштаб. Одновременно решения всё меньше исходят из первоначального основания.',g:'supra',o:'axis',nearG:['projective'],nearO:['measure'],why:'Рост без инварианта превращается в снос. Супра и ось возвращают продвижению его исходное основание.'},
+    {t:'Одна точка — пять будущих',x:'Решение ещё не принято, но каждое возможное продолжение уже по-разному организует настоящее.',g:'lob',o:'measure',nearG:['supra'],nearO:['discern'],why:'Ветви будущего создают неравную кривизну выбора. Мера не позволяет одной возможности преждевременно захватить поле.'},
+    {t:'Форма притворилась сущностью',x:'Красивый интерфейс безупречно воспроизводит лексику дисциплины, но его действия не сохраняют её принцип.',g:'projective',o:'discern',nearG:['supra'],nearO:['axis'],why:'Нужно отделить проекцию от несущей структуры. Различение проверяет продукт по действию, а не по сходству названий.'},
+    {t:'Пауза выглядит отступлением',x:'Все ждут немедленного движения. Но в текущей конфигурации любой шаг усиливает чужой наклон поля.',g:'supra',o:'axis',nearG:['euclid'],nearO:['measure'],why:'Осевание не нуждается во времени. Удержанная ось здесь деятельнее поспешного перемещения.'},
+    {t:'Чужая мера стала законом',x:'Система предлагает удобную шкалу успеха. Ты видишь, что её максимум не совпадает с твоим направлением.',g:'projective',o:'measure',nearG:['euclid'],nearO:['discern'],why:'Шкала является проекцией позиции. Собственная мера возвращает оценке соответствие твоему вектору.'}
+  ];
+  let state, selectedG=null,selectedO=null,audio=null, lastScreen='intro',helpIntent='start';
+  const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+  const clamp=n=>Math.max(0,Math.min(100,Math.round(n)));
+  function tone(freq=420,d=.07){try{audio=audio||new (window.AudioContext||window.webkitAudioContext)();const o=audio.createOscillator(),g=audio.createGain();o.frequency.value=freq;o.type='sine';g.gain.setValueAtTime(.035,audio.currentTime);g.gain.exponentialRampToValueAtTime(.001,audio.currentTime+d);o.connect(g).connect(audio.destination);o.start();o.stop(audio.currentTime+d)}catch(e){}}
+  function show(id){$$('.screen').forEach(x=>x.classList.toggle('active',x.id===id));if(id!=='help')lastScreen=id}
+  function openHelp(intent){helpIntent=intent;$('#closeHelp').textContent=intent==='return'?'ВЕРНУТЬСЯ К УЗЛУ':'НАЧАТЬ ПРОХОД';show('help');$('#help .help-card').scrollTop=0}
+  function shuffle(a){return a.map(v=>[Math.random(),v]).sort((a,b)=>a[0]-b[0]).map(v=>v[1])}
+  function newGame(){state={axis:72,measure:64,grad:0,i:0,log:[],deck:shuffle(nodes).slice(0,8)};selectedG=selectedO=null;show('game');render()}
+  function renderChoices(){
+    $('#geometries').innerHTML=G.map(([id,s,n])=>`<button class="choice ${selectedG===id?'selected':''}" data-g="${id}"><i>${s}</i><span>${n}</span></button>`).join('');
+    $('#operators').innerHTML=O.map(([id,s,n])=>`<button class="choice ${selectedO===id?'selected':''}" data-o="${id}"><i>${s}</i><span>${n}</span></button>`).join('');
+    $$('[data-g]').forEach(b=>b.onclick=()=>{selectedG=b.dataset.g;tone(350);renderChoices();ready()});
+    $$('[data-o]').forEach(b=>b.onclick=()=>{selectedO=b.dataset.o;tone(470);renderChoices();ready()});
+  }
+  function ready(){$('#resolve').disabled=!(selectedG&&selectedO)}
+  function render(){
+    const n=state.deck[state.i];$('#round').textContent=`УЗЕЛ ${state.i+1} / ${state.deck.length}`;$('#nodeLabel').textContent=state.i===0?'ВХОД В ПОЛЕ':'ИСКАЖЕНИЕ ПОЛЯ';$('#nodeTitle').textContent=n.t;$('#nodeText').textContent=n.x;
+    $('#feedback').className='feedback';$('#feedback').innerHTML='';$('#next').className='secondary next';$('#resolve').style.display='block';selectedG=selectedO=null;renderChoices();ready();updateStats();$('#card').scrollTop=0;
+  }
+  function updateStats(){[['axis',state.axis],['measure',state.measure],['grad',state.grad]].forEach(([k,v])=>{$(`#${k}N`).textContent=clamp(v);$(`#${k}B`).style.width=clamp(v)+'%'});window.fieldState=state}
+  function resolve(){
+    const n=state.deck[state.i], gExact=selectedG===n.g, oExact=selectedO===n.o, gNear=n.nearG.includes(selectedG),oNear=n.nearO.includes(selectedO);
+    const quality=(gExact?2:gNear?1:0)+(oExact?2:oNear?1:0);
+    let da=[-12,-5,3,8,11][quality],dm=[-10,-4,2,7,10][quality],dg=[2,5,8,11,13][quality];
+    if(state.grad>state.axis+18) da-=5;if(selectedO==='axis')da+=2;if(selectedO==='measure')dm+=2;
+    state.axis=clamp(state.axis+da);state.measure=clamp(state.measure+dm);state.grad=clamp(state.grad+dg);
+    state.log.push({node:n.t,geometry:selectedG,operator:selectedO,quality});
+    const labels={0:'Поле потеряло связность',1:'Возникло противодействие',2:'Ход частично проводит',3:'Конфигурация когерентна',4:'Точное сообразование'};
+    const f=$('#feedback');f.className='feedback show '+(quality<2?'bad':'');f.innerHTML=`<strong>${labels[quality]}</strong><br>${n.why}`;
+    $('#resolve').style.display='none';$('#next').className='secondary next show';$('#next').textContent=state.i===state.deck.length-1?'СВЕРНУТЬ КАЛИБРОВКУ':'СЛЕДУЮЩИЙ УЗЕЛ';updateStats();tone(quality>2?640:quality>1?480:210,.14);if(navigator.vibrate)navigator.vibrate(quality>2?18:[35,45,35]);f.scrollIntoView({behavior:'smooth',block:'nearest'});
+  }
+  function finish(){
+    const balance=100-Math.abs(state.axis-state.grad)*.55, avg=state.log.reduce((s,x)=>s+x.quality,0)/(state.log.length*4)*100;state.score=clamp(state.axis*.35+state.measure*.2+state.grad*.2+balance*.1+avg*.15);
+    let title,read;if(state.score>=85){title='ИНВАРИАНТ ПРОВЕДЁН';read='Ты усилил позицию, не отдав ось градиенту. Воздействие сохранило меру, а движение осталось сообразным сущему.'}else if(state.score>=68){title='ПОЗИЦИЯ СОБРАНА';read='Ось выдержала прохождение. В отдельных узлах скорость движения опережала различение, но поле сохранило проводимость.'}else if(state.score>=48){title='ОСЬ ТРЕБУЕТ СБОРКИ';read='Градиент возник, однако часть движения оплачена потерей несущей способности. Следующий проход начни с различения геометрии.'}else{title='ПОЛЕ ЗАХВАТИЛО ПОЗИЦИЮ';read='Решения отвечали на давление искажений, а не на инвариант. Это не поражение: теперь виден сам механизм сноса.'}
+    $('#endTitle').textContent=title;$('#score').textContent=state.score;$('#reading').textContent=read;$('#scoreRing').style.background=`conic-gradient(var(--cyan) ${state.score*3.6}deg,#133543 0)`;
+    const best=Math.max(state.score,+(localStorage.getItem('tzar-axis-best')||0));localStorage.setItem('tzar-axis-best',best);show('end');tone(700,.28)
+  }
+  function share(){const txt=`ОСЬ · ТзАрх\nКогерентность: ${state.score}/100\nОсь: ${state.axis} · Мера: ${state.measure} · Градиент: ${state.grad}\nИнвариант усиливается не нажимом, а сообразованием.`;if(navigator.share)navigator.share({title:'ОСЬ · ТзАрх',text:txt}).catch(()=>{});else navigator.clipboard?.writeText(txt).then(()=>toast())}
+  function toast(){const t=$('#toast');t.classList.add('on');setTimeout(()=>t.classList.remove('on'),1700)}
+  $('#start').onclick=()=>openHelp('start');$('#rulesLink').onclick=()=>openHelp('start');$('#gameHelp').onclick=()=>openHelp('return');$('#again').onclick=newGame;$('#resolve').onclick=resolve;$('#next').onclick=()=>{if(++state.i>=state.deck.length)finish();else render()};$('#share').onclick=share;
+  $('#closeHelp').onclick=()=>helpIntent==='start'?newGame():show(lastScreen);
+  const c=$('#field'),ctx=c.getContext('2d');let W,H,t=0,particles=[];
+  function size(){const d=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;c.width=W*d;c.height=H*d;c.style.width=W+'px';c.style.height=H+'px';ctx.setTransform(d,0,0,d,0,0);particles=Array.from({length:34},()=>({a:Math.random()*7,r:50+Math.random()*Math.min(W,H)*.65,s:(Math.random()-.5)*.002,z:.4+Math.random()*1.4}))}
+  function draw(){t++;ctx.clearRect(0,0,W,H);const cx=W/2,cy=H*.39,axis=window.fieldState?.axis||72,grad=window.fieldState?.grad||12;particles.forEach(p=>{p.a+=p.s*(1+grad/70);const x=cx+Math.cos(p.a)*p.r,y=cy+Math.sin(p.a*1.13)*p.r*.75;ctx.fillStyle=`rgba(90,213,218,${.05*p.z})`;ctx.beginPath();ctx.arc(x,y,p.z,0,7);ctx.fill()});ctx.save();ctx.translate(cx,cy);ctx.rotate(Math.sin(t/180)*.05*(1-axis/120));for(let i=0;i<3;i++){ctx.strokeStyle=`rgba(${i===1?'242,205,120':'83,213,217'},${.07+i*.025})`;ctx.lineWidth=1;ctx.beginPath();ctx.ellipse(0,0,75+i*58,28+i*35,Math.sin(t/220+i)*.2,0,Math.PI*2);ctx.stroke()}ctx.restore();requestAnimationFrame(draw)}
+  addEventListener('resize',size);size();draw();
+})();
+</script>
+</body>
+</html>
