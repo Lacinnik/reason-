@@ -20,11 +20,11 @@ RU short
 Архитектор сохраняет меру и когерентность.
 
 EN invariants
-RTE v2.0.0-rc.2 is available at https://example.org/rte?mode=offline.
+RTE v2.0.0 is available at https://example.org/rte?mode=offline.
 Email qa@example.org. The API returns 42 items.
 
 RU invariants
-RTE v2.0.0-rc.2 доступен по адресу https://example.org/rte?mode=offline.
+RTE v2.0.0 доступен по адресу https://example.org/rte?mode=offline.
 Пишите qa@example.org. API возвращает 42 элемента.
 
 Memory source
@@ -39,7 +39,7 @@ axis ↔ ось
 Long text
 The architect preserves measure and coherence in the field.
 
-The system records version v2.0.0-rc.2, keeps API names intact,
+The system records version v2.0.0, keeps API names intact,
 and does not alter https://example.org/rte?mode=offline or qa@example.org.
 
 When the axis holds form, the result remains readable across several
@@ -51,7 +51,7 @@ paragraphs and 42 observations.
 | ID | Действие | Ожидаемый результат |
 |---|---|---|
 | B1 | В Windows Chrome или Edge перевести оба коротких текста. | Оба направления работают; интерфейс не зависает; активен WASM q8 либо WebGPU с возвратом к WASM. |
-| B2 | Перевести оба текста с инвариантами. | `v2.0.0-rc.2`, URL, `qa@example.org`, `API` и `42` сохранены дословно. |
+| B2 | Перевести оба текста с инвариантами. | `v2.0.0`, URL, `qa@example.org`, `API` и `42` сохранены дословно. |
 | B3 | Переключить направление. | Текущий перевод переносится в поле исходника; языки меняются местами. |
 | B4 | В Windows запустить перевод через `Ctrl+Enter`. | Результат эквивалентен запуску кнопкой. |
 | R1 | Выбрать `3 · резонанс`, перевести короткий текст, выбрать другую карточку при её наличии. | Нет ошибки; отображается от одной до трёх уникальных форм; выбор меняет основной результат и метрики. |
