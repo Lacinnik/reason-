@@ -1,4 +1,4 @@
-const VERSION = '2.0.0-rc.2';
+const VERSION = '2.0.0';
 const SHELL_CACHE = `rte-shell-${VERSION}`;
 const RUNTIME_CACHE = `rte-runtime-${VERSION}`;
 const PINNED_TRANSFORMERS = 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.7.2';
