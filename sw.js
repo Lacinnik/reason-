@@ -1,6 +1,7 @@
 const VERSION = '2.0.0';
-const SHELL_CACHE = `rte-shell-${VERSION}`;
-const RUNTIME_CACHE = `rte-runtime-${VERSION}`;
+const CACHE_REVISION = 'published-verticals-1';
+const SHELL_CACHE = `rte-shell-${VERSION}-${CACHE_REVISION}`;
+const RUNTIME_CACHE = `rte-runtime-${VERSION}-${CACHE_REVISION}`;
 const PINNED_TRANSFORMERS = 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.7.2';
 const SHELL = [
   './',
@@ -12,6 +13,16 @@ const SHELL = [
   './manifest.webmanifest',
   './icon.svg',
   './vendor/transformers-3.7.2.js',
+  './field-check/',
+  './field-check/index.html',
+  './field-check/styles.css',
+  './field-check/app.js',
+  './transmissions/',
+  './transmissions/index.html',
+  './transmissions/styles.css',
+  './transmissions/app.mjs',
+  './transmissions/catalog.mjs',
+  './transmissions/runtime.mjs',
 ];
 
 self.addEventListener('install', (event) => {
