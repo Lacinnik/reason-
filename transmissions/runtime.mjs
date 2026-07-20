@@ -1,4 +1,4 @@
-export const SESSION_SCHEMA = "architectonica.seven-transmissions-session/1.0.0-rc.1";
+export const SESSION_SCHEMA = "architectonica.seven-transmissions-session/1.0.0";
 const KEYWORDS = [
   ["TX7", ["заново","перезапуск","отпустить","устарел","закрыть","обнул"]],
   ["TX5", ["результат","сделать","выпустить","артефакт","срок","материал"]],
@@ -44,7 +44,7 @@ export function buildSession(draft, catalog, environment = {}) {
     id: uuid(),
     createdAt: now(),
     laboratory: "reson",
-    lifecycleState: "release-candidate",
+    lifecycleState: "stable",
     sharedObject: draft.object.trim(),
     declaredTension: draft.tension.trim(),
     voices: cleanVoices(draft.voices),
