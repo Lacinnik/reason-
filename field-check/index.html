@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#071312">
+  <meta name="description" content="РЕЗОН Field Check — локальный протокол проверки доверия и проводимости коллективного поля.">
+  <title>РЕЗОН · Collective Field Check</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <div class="grid" aria-hidden="true"></div>
+  <header><a href="../"><span>≈</span><b>РЕЗОН</b></a><small>ЛАБОРАТОРИЯ КОЛЛЕКТИВНОГО ПОЛЯ</small></header>
+  <main>
+    <section class="hero"><p class="eyebrow">COLLECTIVE META CORE · RC 1.0</p><h1>Поле не складывается<br>из одного <em>голоса.</em></h1><p>Протокол проверяет две независимые границы: взаимную предъявленность связей и проводимость общего объекта.</p></section>
+
+    <section class="workspace">
+      <nav class="steps" aria-label="Этапы"><span class="active">01 · СОСТАВ</span><span>02 · ПОЛЕ</span><span>03 · РЕШЕНИЕ</span></nav>
+
+      <section class="stage active" data-stage="setup">
+        <p class="code">01 · СОСТАВ ПОЛЯ</p><h2>Кто входит во встречу?</h2>
+        <label><span>Название общего объекта</span><input id="field-title" placeholder="Что группа собирает или различает?"></label>
+        <label><span>Имена участников · от 2 до 6</span><textarea id="participants" rows="5" placeholder="Александр&#10;Мария&#10;Иван"></textarea></label>
+        <p class="hint" id="setup-hint">Нужно указать общий объект и минимум двух участников.</p>
+        <button class="primary" id="build" disabled>Собрать поле <span>→</span></button>
+      </section>
+
+      <section class="stage" data-stage="field" aria-hidden="true">
+        <p class="code">02 · СВЯЗИ И МЕТРИКИ</p><h2>Каждый голос предъявляет связь и меру</h2>
+        <p class="explain">Для каждого участника выберите другого участника, которому предъявляется связь доверия, затем оцените общий объект по α, Q и T.</p>
+        <div id="subject-cards"></div>
+        <button class="primary" id="evaluate">Проверить поле <span>→</span></button>
+      </section>
+
+      <section class="stage" data-stage="result" aria-hidden="true">
+        <p class="code">03 · META DECISION</p><div class="decision" id="decision">HOLD</div><h2 id="decision-title"></h2><p class="decision-copy" id="decision-copy"></p>
+        <div class="metrics" id="metrics"></div>
+        <div class="evidence" id="evidence"></div>
+        <div class="actions"><button class="primary" id="restart">Новая проверка</button><button id="export">Экспорт JSON</button></div>
+      </section>
+    </section>
+
+    <section class="boundary"><b>ГРАНИЦА</b><p>Решение строится только на явно введённых участниками данных. Оно не измеряет скрытое доверие, не разрешает действие от имени группы и не заменяет согласие людей.</p></section>
+  </main>
+  <script src="./app.js" defer></script>
+</body>
+</html>
