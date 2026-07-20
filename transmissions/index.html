@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#071312">
+  <meta name="description" content="7 Передач — самостоятельная локальная колода режимов перехода лаборатории РЕЗОН.">
+  <title>РЕЗОН · 7 Передач</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <div class="grid" aria-hidden="true"></div>
+  <header><a href="../"><span>≈</span><b>РЕЗОН</b></a><small>ЛАБОРАТОРИЯ КОЛЛЕКТИВНОГО ПОЛЯ</small></header>
+  <main>
+    <section class="hero"><div><p class="eyebrow">7 TRANSMISSIONS · RELEASE CANDIDATE 1.0</p><h1>Полю нужен<br>не совет, а <em>режим.</em></h1></div><div class="hero-copy"><p>Семь Передач помогают группе назвать способ следующего перехода и оставить проверяемый след без скрытой оценки людей.</p><span>Сессий в этом браузере: <b id="journal-count">0</b></span></div></section>
+
+    <section class="workspace" aria-live="polite">
+      <nav class="steps" aria-label="Этапы"><button class="active"><i>01</i><span>Поле</span></button><button><i>02</i><span>Передача</span></button><button><i>03</i><span>Ход</span></button><button><i>04</i><span>След</span></button></nav>
+
+      <section class="stage active" data-stage="field">
+        <p class="code">01 · ПРЕДЪЯВЛЕННОЕ ПОЛЕ</p><h2>Что группа переводит?</h2>
+        <label><span>Общий объект · минимум 3 слова</span><input id="shared-object" placeholder="Например: выпуск нового продукта"></label>
+        <label><span>Текущее напряжение · минимум 3 слова</span><textarea id="tension" rows="4" placeholder="Что удерживает переход или требует решения?"></textarea></label>
+        <label><span>Голоса поля · 2–8 имён, по одному в строке</span><textarea id="voices" rows="5" placeholder="Александр&#10;Мария&#10;Иван"></textarea></label>
+        <p class="hint" id="field-hint">Нужны общий объект, напряжение и минимум два названных голоса.</p>
+        <div class="entry-actions"><button class="primary" id="suggest" disabled>Предложить режим <span>→</span></button><button id="open-deck" disabled>Выбрать вручную</button></div>
+      </section>
+
+      <section class="stage" data-stage="deck" aria-hidden="true">
+        <p class="code">02 · КОЛОДА ПЕРЕДАЧ</p><h2>Выберите режим перехода</h2>
+        <div class="recommendation" id="recommendation" hidden><span>ПРЕДЛОЖЕНИЕ</span><p id="recommendation-copy"></p></div>
+        <div class="deck" id="deck"></div>
+        <p class="hint">Предложение строится только по буквальным словам в вашем описании. Оно не считывает скрытое состояние группы.</p>
+        <button class="primary" id="to-practice" disabled>Открыть практику <span>→</span></button>
+      </section>
+
+      <section class="stage" data-stage="practice" aria-hidden="true">
+        <p class="code">03 · ПРОВЕДЕНИЕ</p><div class="transmission-head" id="transmission-head"></div>
+        <div class="practice-card"><span>ВОПРОС ПОЛЮ</span><h2 id="question"></h2><b>ДЕЙСТВИЕ</b><p id="action"></p></div>
+        <label><span>След голосов · что различимо прозвучало</span><textarea id="voice-trace" rows="4" placeholder="Участники явно предъявили…"></textarea></label>
+        <label><span>Следующий наблюдаемый шаг</span><textarea id="next-step" rows="3" placeholder="Группа сделает и предъявит…"></textarea></label>
+        <div class="pair"><label><span>Владелец шага</span><input id="owner" placeholder="Имя"></label><label><span>Окно предъявления</span><input id="window" placeholder="Например: завтра до 18:00"></label></div>
+        <fieldset><legend>Все названные голоса получили возможность предъявиться?</legend><div class="gate"><label><input type="radio" name="voice-gate" value="presented"><span>Да, предъявились</span></label><label><input type="radio" name="voice-gate" value="not-presented"><span>Нет, поле неполно</span></label></div></fieldset>
+        <p class="hint" id="practice-hint">Решение READY возможно только при явном предъявлении всех названных голосов.</p>
+        <button class="primary" id="commit" disabled>Зафиксировать след <span>→</span></button>
+      </section>
+
+      <section class="stage" data-stage="result" aria-hidden="true">
+        <p class="code">04 · РЕЗУЛЬТАТ СЕССИИ</p><div class="outcome" id="outcome">READY</div><h2 id="result-title"></h2><p class="result-copy" id="result-copy"></p>
+        <dl class="trace" id="trace"></dl>
+        <div class="actions"><button class="primary" id="restart">Новая сессия</button><button id="export">Экспорт JSON</button></div>
+      </section>
+    </section>
+
+    <section class="boundary"><b>ГРАНИЦА</b><p>Колода работает только с явно введёнными словами. Она не измеряет доверие, не определяет согласие по молчанию и не принимает решение от имени группы.</p></section>
+  </main>
+  <script type="module" src="./app.mjs"></script>
+</body>
+</html>
