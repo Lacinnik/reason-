@@ -1,5 +1,12 @@
 # Changelog
 
+## Collective Field Check 1.0 — Stable release
+
+- Пройдены ALLOW и оба HOLD-контура: trust gate и metrics gate.
+- JSON-экспорт удерживает Blob до начала загрузки в Safari и настольных браузерах.
+- Исправлен офлайн-маршрут общего Service Worker: `/field-check/` и `/transmissions/` возвращают собственные оболочки, а не корневой RTE.
+- Добавлена исполнимая проверка офлайн-навигации опубликованных вертикалей.
+
 ## 2.0.0 — Stable release
 
 - PR #2 слит в `main`.

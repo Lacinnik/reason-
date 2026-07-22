@@ -1,5 +1,5 @@
 const VERSION = '2.0.0';
-const CACHE_REVISION = 'published-verticals-1';
+const CACHE_REVISION = 'field-check-stable-1';
 const SHELL_CACHE = `rte-shell-${VERSION}-${CACHE_REVISION}`;
 const RUNTIME_CACHE = `rte-runtime-${VERSION}-${CACHE_REVISION}`;
 const PINNED_TRANSFORMERS = 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.7.2';
@@ -66,7 +66,12 @@ async function networkFirst(request) {
   try {
     return await putRuntime(request, await fetch(request));
   } catch {
-    return (await cache.match(request)) || (await caches.match('./index.html')) || Response.error();
+    const cached = (await cache.match(request)) || (await caches.match(request));
+    if (cached) return cached;
+    const { pathname } = new URL(request.url);
+    if (/\/field-check(?:\/|$)/u.test(pathname)) return (await caches.match('./field-check/index.html')) || Response.error();
+    if (/\/transmissions(?:\/|$)/u.test(pathname)) return (await caches.match('./transmissions/index.html')) || Response.error();
+    return (await caches.match('./index.html')) || Response.error();
   }
 }
 

@@ -1,7 +1,15 @@
 (() => {
   const state = { title: "", subjects: [], decision: null };
   const $ = selector => document.querySelector(selector);
-  const cleanNames = value => [...new Set(String(value).split(/[\n,;]+/u).map(name => name.trim()).filter(Boolean))].slice(0, 6);
+  const cleanNames = value => {
+    const seen = new Set();
+    return String(value).split(/[\n,;]+/u).map(name => name.trim()).filter(name => {
+      const key = name.toLocaleLowerCase("ru-RU");
+      if (!name || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  };
   const escapeHtml = value => String(value).replace(/[&<>"']/g, character => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" })[character]);
 
   function setStage(name) {
@@ -18,14 +26,19 @@
   function validateSetup() {
     const names = cleanNames($("#participants").value);
     const title = $("#field-title").value.trim();
-    const valid = title.length >= 3 && names.length >= 2;
+    const participantsValid = names.length >= 2 && names.length <= 6;
+    const valid = title.length >= 3 && participantsValid;
     $("#build").disabled = !valid;
-    $("#setup-hint").textContent = `${names.length} из 2–6 участников · ${title.length >= 3 ? "общий объект назван" : "назовите общий объект"}`;
+    const participantHint = names.length > 6 ? "укажите не более 6 участников" : `${names.length} из 2–6 участников`;
+    $("#setup-hint").textContent = `${participantHint} · ${title.length >= 3 ? "общий объект назван" : "назовите общий объект"}`;
   }
 
   function buildField() {
-    state.title = $("#field-title").value.trim();
-    state.subjects = cleanNames($("#participants").value).map((name, index) => ({ id: `s${index + 1}`, name, trustTo: "", alpha: .75, Q: .75, T: .75 }));
+    const title = $("#field-title").value.trim();
+    const names = cleanNames($("#participants").value);
+    if (title.length < 3 || names.length < 2 || names.length > 6) return;
+    state.title = title;
+    state.subjects = names.map((name, index) => ({ id: `s${index + 1}`, name, trustTo: "", alpha: .75, Q: .75, T: .75 }));
     renderSubjects();
     setStage("field");
   }
@@ -95,11 +108,24 @@
     validateSetup(); setStage("setup");
   }
 
+  function downloadJson(filename, value) {
+    const blob = new Blob([JSON.stringify(value, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    link.hidden = true;
+    document.body.append(link);
+    link.click();
+    setTimeout(() => {
+      link.remove();
+      URL.revokeObjectURL(url);
+    }, 1000);
+  }
+
   function exportDecision() {
     if (!state.decision) return;
-    const blob = new Blob([JSON.stringify(state.decision, null, 2)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a"); link.href = url; link.download = `reson-field-${state.decision.id}.json`; link.click(); URL.revokeObjectURL(url);
+    downloadJson(`reson-field-${state.decision.id}.json`, state.decision);
   }
 
   $("#field-title").addEventListener("input", validateSetup);
