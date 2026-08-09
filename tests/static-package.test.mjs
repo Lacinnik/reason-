@@ -8,6 +8,7 @@ const requiredIds = [
   'deepCheck', 'glossaryEnabled', 'deviceMode', 'segmentSize',
   'candidatesSection', 'candidatesList', 'prepareCurrent', 'prepareAll',
   'modelEnRu', 'modelRuEn', 'memoryList', 'glossaryList',
+  'languageStatement', 'languageFormula', 'languageQ',
 ];
 
 test('HTML exposes the complete RTE v2 interface', async () => {
@@ -28,7 +29,7 @@ test('manifest is valid and scoped for GitHub Pages', async () => {
 
 test('service worker precaches every local runtime module', async () => {
   const sw = await readFile(new URL('../sw.js', import.meta.url), 'utf8');
-  for (const file of ['index.html', 'app.js', 'styles.css', 'engine-core.js', 'storage.js', 'manifest.webmanifest', 'icon.svg', 'vendor/transformers-3.7.2.js']) {
+  for (const file of ['index.html', 'app.js', 'styles.css', 'engine-core.js', 'storage.js', 'manifest.webmanifest', 'icon.svg', 'vendor/transformers-3.7.2.js', 'tzar-language-001.mjs', 'tzar-language.profiles.json', 'module/catalog.mjs']) {
     assert.match(sw, new RegExp(file.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'u'), `service worker omits ${file}`);
   }
 });
