@@ -15,6 +15,9 @@ const runtimeFiles = [
   'manifest.webmanifest',
   'icon.svg',
   'vendor/transformers-3.7.2.js',
+  'tzar-language-001.mjs',
+  'tzar-language.profiles.json',
+  'module/catalog.mjs',
 ];
 
 test('all browser runtime files exist', async () => {

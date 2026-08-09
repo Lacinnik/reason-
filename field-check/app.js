@@ -1,3 +1,5 @@
+import { compileTzarLanguage } from "../tzar-language-001.mjs";
+
 (() => {
   const state = { title: "", subjects: [], decision: null };
   const $ = selector => document.querySelector(selector);
@@ -38,7 +40,7 @@
     const names = cleanNames($("#participants").value);
     if (title.length < 3 || names.length < 2 || names.length > 6) return;
     state.title = title;
-    state.subjects = names.map((name, index) => ({ id: `s${index + 1}`, name, trustTo: "", alpha: .75, Q: .75, T: .75 }));
+    state.subjects = names.map((name, index) => ({ id: `s${index + 1}`, name, trustTo: "", alpha: .75, qualityHypothesis: .75, T: .75 }));
     renderSubjects();
     setStage("field");
   }
@@ -52,7 +54,7 @@
       <article class="subject-card">
         <div class="subject-id"><i>${String(index + 1).padStart(2, "0")}</i><b>${escapeHtml(subject.name)}</b></div>
         <label><span>Предъявляет связь</span><select data-trust="${subject.id}"><option value="">Выберите участника</option>${state.subjects.filter(other => other.id !== subject.id).map(other => `<option value="${other.id}">${escapeHtml(other.name)}</option>`).join("")}</select></label>
-        <div class="sliders">${metricControl(subject, "alpha", "α · соответствие")}${metricControl(subject, "Q", "Q · качество")}${metricControl(subject, "T", "T · текучесть")}</div>
+        <div class="sliders">${metricControl(subject, "alpha", "α · соответствие")}${metricControl(subject, "qualityHypothesis", "Q̂ · гипотеза качества")}${metricControl(subject, "T", "T · текучесть")}</div>
       </article>`).join("");
     document.querySelectorAll("[data-trust]").forEach(select => select.addEventListener("change", () => {
       state.subjects.find(subject => subject.id === select.dataset.trust).trustTo = select.value;
@@ -70,12 +72,12 @@
 
   function evaluate() {
     const linksVerified = state.subjects.every(subject => subject.trustTo && subject.trustTo !== subject.id);
-    const metrics = { alpha: average("alpha"), Q: average("Q"), T: average("T") };
+    const metrics = { alpha: average("alpha"), qualityHypothesis: average("qualityHypothesis"), T: average("T") };
     const metricsReady = Object.values(metrics).every(value => value >= .75);
     const gate = !linksVerified ? "trust" : !metricsReady ? "metrics" : "ok";
     const allow = gate === "ok";
     state.decision = {
-      schema: "reson.collective-meta-decision/1.0.0",
+      schema: "reson.collective-meta-decision/1.1.0",
       id: globalThis.crypto?.randomUUID?.() || `field-${Date.now()}`,
       ts: new Date().toISOString(),
       laboratory: "reson",
@@ -86,7 +88,25 @@
       gate,
       allow,
       synthesis_ready: allow,
+      q: null,
     };
+    const links = state.subjects.map(subject => `${subject.name} → ${state.subjects.find(item => item.id === subject.trustTo)?.name || "связь не предъявлена"}`).join("; ");
+    state.decision.language = compileTzarLanguage({
+      object: state.title,
+      subjectTrace: links,
+      innerImage: `gate=${gate}; α=${metrics.alpha.toFixed(2)}; Q̂=${metrics.qualityHypothesis.toFixed(2)}; T=${metrics.T.toFixed(2)}`,
+      coreNeed: allow ? "провести общий объект к следующему коллективному синтезу" : "допредъявить связи и проводимость поля",
+      supra: "сохранить отдельность голосов и явность связей",
+      nextExperiment: allow ? "назвать владельца следующего коллективного шага" : "вернуться к непредъявленным связям",
+      riemann: "фактический возврат группы после следующего действия",
+      observedQ: null,
+    }, {
+      profile: "collective-meta-core",
+      voice: "collective",
+      targetRelation: "проверить предъявленность связей и проводимость общего объекта",
+      context: `РЕЗОН Field Check · gate=${gate}`,
+      subjectConfirmed: linksVerified,
+    });
     localStorage.setItem("reson.collective-meta.last-decision.v1", JSON.stringify(state.decision));
     renderDecision();
     setStage("result");
@@ -97,9 +117,9 @@
     $("#decision").textContent = decision.allow ? "ALLOW" : "HOLD";
     $("#decision").classList.toggle("hold", !decision.allow);
     $("#decision-title").textContent = decision.allow ? "Поле готово к синтезу." : decision.gate === "trust" ? "Связи ещё не предъявлены." : "Проводимость пока недостаточна.";
-    $("#decision-copy").textContent = decision.allow ? "Каждый участник предъявил связь, а средние α, Q и T удерживают порог 0.75." : decision.gate === "trust" ? "У каждого участника должна быть явно выбранная связь с другим голосом поля." : "Связи предъявлены, но хотя бы одна средняя метрика ниже порога 0.75.";
-    $("#metrics").innerHTML = Object.entries(decision.avg_metrics).map(([key, value]) => `<div><span>${key}</span><b>${value.toFixed(2)}</b></div>`).join("");
-    $("#evidence").innerHTML = `<div><span>Связи доверия</span><b>${decision.links_verified ? "предъявлены" : "неполны"}</b></div><div><span>Ворота решения</span><b>${decision.gate}</b></div><div><span>Общий объект</span><b>${escapeHtml(decision.shared_object)}</b></div><div><span>Хранение</span><b>локально</b></div>`;
+    $("#decision-copy").textContent = decision.allow ? "Каждый участник предъявил связь, а средние α, Q̂ и T удерживают порог 0.75. Q остаётся null до фактического возврата." : decision.gate === "trust" ? "У каждого участника должна быть явно выбрана связь с другим голосом поля; Q остаётся null." : "Связи предъявлены, но хотя бы одна предварительная метрика ниже порога 0.75; Q остаётся null.";
+    $("#metrics").innerHTML = [...Object.entries(decision.avg_metrics), ["Q", null]].map(([key, value]) => `<div><span>${key}</span><b>${value == null ? "null" : value.toFixed(2)}</b></div>`).join("");
+    $("#evidence").innerHTML = `<div><span>Слово поля</span><b>${escapeHtml(decision.language.layers.publicStatement)}</b></div><div><span>Сингулярная формула</span><b>${escapeHtml(decision.language.formula)}</b></div><div><span>Связи доверия</span><b>${decision.links_verified ? "предъявлены" : "неполны"}</b></div><div><span>Ворота решения</span><b>${decision.gate}</b></div><div><span>Общий объект</span><b>${escapeHtml(decision.shared_object)}</b></div><div><span>Хранение</span><b>локально</b></div>`;
   }
 
   function restart() {

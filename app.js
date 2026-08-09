@@ -13,6 +13,7 @@ import {
   splitTextIntoSegments,
 } from './engine-core.js';
 import { RTEStorage } from './storage.js';
+import { compileTzarLanguage } from './tzar-language-001.mjs';
 
 const PINNED_TRANSFORMERS_URL = 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.7.2';
 const $ = (id) => document.getElementById(id);
@@ -29,6 +30,7 @@ const ui = {
   prepareCurrent: $('prepareCurrent'), prepareAll: $('prepareAll'), refreshDiagnostics: $('refreshDiagnostics'), persistStorage: $('persistStorage'),
   cacheLibrary: $('cacheLibrary'), cacheShell: $('cacheShell'), cacheEnRu: $('cacheEnRu'), cacheRuEn: $('cacheRuEn'), cacheStorage: $('cacheStorage'), cachePersistence: $('cachePersistence'),
   modelEnRu: $('modelEnRu'), modelRuEn: $('modelRuEn'),
+  languageStatement: $('languageStatement'), languageFormula: $('languageFormula'), languageStatus: $('languageStatus'), languageQ: $('languageQ'),
 };
 
 const storage = new RTEStorage();
@@ -145,6 +147,37 @@ function renderMetrics(metrics = null) {
   const pct = Math.round(metrics.resonance * 100);
   ui.resonanceValue.textContent = `${pct}%`;
   ui.resonanceFill.style.width = `${pct}%`;
+}
+
+function renderLanguage(source = '', target = '', { confirmed = false } = {}) {
+  if (!source || !target) {
+    ui.languageStatement.textContent = 'Переведи и выбери форму — Слово перехода появится отдельно от перевода.';
+    ui.languageFormula.textContent = '—';
+    ui.languageStatus.textContent = 'HOLD-INPUT';
+    ui.languageQ.textContent = 'null';
+    return null;
+  }
+  const language = compileTzarLanguage({
+    object: source,
+    subjectTrace: confirmed ? 'перевод подтверждён пользователем и принят в локальную память' : 'выбран кандидат перевода',
+    innerImage: target,
+    coreNeed: `передать смысл ${directionMeta().source} → ${directionMeta().target} без скрытой передачи данных`,
+    supra: 'сохранить исходный объект, авторские термины и отдельность переведённой формы',
+    nextExperiment: confirmed ? 'применить подтверждённый перевод в реальном контексте' : 'проверить, отредактировать и подтвердить перевод',
+    riemann: 'фактическое использование перевода и наблюдаемый ответ адресата',
+    observedQ: null,
+  }, {
+    profile: 'offline-translator',
+    voice: 'collective',
+    targetRelation: 'передать смысл между EN и RU, сохраняя различие исходного текста и переведённой формы',
+    context: `RTE 2.1 · ${directionMeta().source} → ${directionMeta().target}`,
+    subjectConfirmed: confirmed,
+  });
+  ui.languageStatement.textContent = language.layers.publicStatement;
+  ui.languageFormula.textContent = language.formula;
+  ui.languageStatus.textContent = confirmed ? 'ПОДТВЕРЖДЕНО ПОЛЬЗОВАТЕЛЕМ' : 'КАНДИДАТ · ТРЕБУЕТ ПОДТВЕРЖДЕНИЯ';
+  ui.languageQ.textContent = 'null';
+  return language;
 }
 
 function isAppleSafari() {
@@ -423,7 +456,7 @@ function renderCandidates(candidates) {
     button.innerHTML = `
       <span class="candidate-head"><strong>${label}</strong><span>${Math.round(candidate.metrics.resonance * 100)}%</span></span>
       <span class="candidate-text"></span>
-      <span class="candidate-meta">α ${candidate.metrics.alpha.toFixed(2)} · Q ${candidate.metrics.quality.toFixed(2)} · Cₘ ${candidate.metrics.container.toFixed(2)} · T ${candidate.metrics.flow.toFixed(2)}</span>
+      <span class="candidate-meta">α ${candidate.metrics.alpha.toFixed(2)} · Q̂ ${candidate.metrics.quality.toFixed(2)} · Cₘ ${candidate.metrics.container.toFixed(2)} · T ${candidate.metrics.flow.toFixed(2)}</span>
     `;
     button.querySelector('.candidate-text').textContent = candidate.text;
     button.addEventListener('click', () => selectCandidate(candidate.id));
@@ -441,6 +474,7 @@ function selectCandidate(id) {
   renderCandidates(currentCandidates);
   updateCounts();
   if (lastContext) lastContext.selectedCandidateId = id;
+  renderLanguage(ui.source.value.trim(), candidate.text);
   setLog('Выбран вариант с нужной формой. Результат можно отредактировать и принять в память.');
 }
 
@@ -469,6 +503,7 @@ async function runTranslation({ ignoreWholeMemory = false } = {}) {
         currentCandidates = [candidate];
         ui.target.value = exact.target;
         renderMetrics(metrics);
+        renderLanguage(sourceText, exact.target, { confirmed: true });
         updateCounts();
         setLog('Точный перевод найден в утверждённой памяти — нейромодель не запускалась.', { success: true });
         return;
@@ -513,6 +548,7 @@ async function runTranslation({ ignoreWholeMemory = false } = {}) {
     ui.target.value = candidates[0].text;
     renderCandidates(candidates);
     renderMetrics(candidates[0].metrics);
+    renderLanguage(sourceText, candidates[0].text);
     updateCounts();
     localStorage.setItem('rte:v2:last', JSON.stringify({ direction, source: sourceText, target: candidates[0].text }));
     const memorySegments = result.translatedSegments.filter((segment) => segment.fromMemory).length;
@@ -564,6 +600,7 @@ async function approveTranslation() {
     }
     targetDirty = false;
     await renderMemory();
+    renderLanguage(source, target, { confirmed: true });
     setLog('Перевод принят. Следующее совпадение будет взято из локальной памяти.', { success: true });
   } catch (error) {
     setLog(`Не удалось сохранить память: ${error.message}`, { error: true });
@@ -790,6 +827,7 @@ ui.swap.addEventListener('click', () => {
   renderDirection();
   renderCandidates([]);
   renderMetrics(null);
+  renderLanguage();
   updateCounts();
   setLog('Направление изменено. Для него подключается отдельная модель.');
 });
@@ -811,6 +849,7 @@ ui.clear.addEventListener('click', () => {
   targetDirty = false;
   renderCandidates([]);
   renderMetrics(null);
+  renderLanguage();
   updateCounts();
   setLog('Поля очищены.');
 });
@@ -878,6 +917,7 @@ async function boot() {
   renderBackend();
   updateCounts();
   renderMetrics(null);
+  renderLanguage();
 
   if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
     try {

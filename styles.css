@@ -81,6 +81,16 @@
     .candidate-text { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 5; overflow: hidden; line-height: 1.42; font-size: 13px; }
     .candidate-meta { color: var(--muted); font-size: 11px; }
     .resonance { margin-top: 14px; padding: 17px; }
+    .language-output { margin-top: 14px; padding: 18px; }
+    .language-output header { display: flex; justify-content: space-between; gap: 18px; align-items: flex-start; padding-bottom: 14px; border-bottom: 1px solid var(--line); }
+    .language-output header span { color: var(--accent); font-size: 10px; letter-spacing: .08em; }
+    .language-output h2 { margin: 5px 0 0; font-size: 24px; }
+    .language-output header b { color: var(--accent-2); font-size: 11px; text-align: right; }
+    .language-output blockquote { margin: 18px 0; padding-left: 18px; border-left: 2px solid var(--accent); color: #dcebe8; line-height: 1.65; }
+    .language-passport { display: grid; grid-template-columns: 170px minmax(0, 1fr); gap: 8px 14px; padding: 14px; border: 1px solid var(--line); background: rgba(2, 12, 21, .56); }
+    .language-passport span { color: var(--muted); font-size: 10px; }
+    .language-passport strong { color: var(--accent-2); font: 12px/1.5 monospace; }
+    .language-output > small { display: block; margin-top: 12px; color: var(--muted); line-height: 1.5; }
     .bar { height: 9px; background: #06101b; border-radius: 999px; overflow: hidden; border: 1px solid var(--line); }
     .fill { height: 100%; width: 0; background: linear-gradient(90deg, var(--accent), var(--accent-2)); transition: width .3s ease; }
     .metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 13px; }
@@ -142,6 +152,9 @@
       .translator-grid { grid-template-columns: 1fr; }
       textarea { min-height: 220px; }
       .metrics { grid-template-columns: 1fr 1fr; }
+      .language-output header { flex-direction: column; }
+      .language-output header b { text-align: left; }
+      .language-passport { grid-template-columns: 1fr; }
       .model-grid { grid-template-columns: 1fr; }
     }
     @media (max-width: 480px) {

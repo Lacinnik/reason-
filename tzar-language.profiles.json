@@ -1,0 +1,255 @@
+{
+  "schema": "tzar.language-product-profiles/1.0.0",
+  "model": {
+    "id": "TZAR-LANGUAGE-001",
+    "version": "0.2.0-candidate",
+    "kind": "authorial-singular-alphabet-language-model",
+    "corpus": "49 Азов × 24 Буки × 7 Передач",
+    "technical_boundary": "Авторская символическая языковая модель и детерминированный компилятор; не обученная большая нейросеть.",
+    "shared_contract": "O → S → I → R_g при C; Q=null до фактического наблюдаемого возврата."
+  },
+  "profiles": [
+    {
+      "id": "product-platform",
+      "voice": "system",
+      "execution": "runtime-active",
+      "object_input": "задача входа, дословно предъявленная пользователем",
+      "subject_trace": "выбранный маршрут и открытое досье",
+      "reflected_image": "карта экосистемы и связей продуктов",
+      "target_relation": "провести задачу к подходящему рабочему контуру без подмены объекта",
+      "context": "оболочка · единая точка входа",
+      "q_policy": "null-until-observed-return"
+    },
+    {
+      "id": "architectonics",
+      "voice": "system",
+      "execution": "profile-contract",
+      "object_input": "сущность, отношение или переход, заданные автором",
+      "subject_trace": "явно названные границы и связи",
+      "reflected_image": "архитектура сущностей и отношений",
+      "target_relation": "сохранить самостоятельность элементов в единой системе",
+      "context": "ось Архитектоники",
+      "q_policy": "null-until-observed-return"
+    },
+    {
+      "id": "tzar",
+      "voice": "system",
+      "execution": "runtime-active",
+      "object_input": "объект тензорного различения, заданный пользователем",
+      "subject_trace": "наблюдаемые проявления субъекта",
+      "reflected_image": "образ объекта в речи, модели или интерфейсе",
+      "target_relation": "удержать проверяемое отношение объекта к выбранной цели",
+      "context": "тензор · пять геометрий · шесть QENGINE",
+      "q_policy": "null-until-observed-return"
+    },
+    {
+      "id": "gdeya",
+      "voice": "subject",
+      "execution": "runtime-active",
+      "object_input": "конкретный эпизод или намерение участника",
+      "subject_trace": "действие, которое принадлежит субъекту",
+      "reflected_image": "отражение эпизода в карте состояния",
+      "target_relation": "провести один наблюдаемый ход, сохраняя источник действия в Ядре",
+      "context": "четыре плиты · SEP-7×7",
+      "q_policy": "null-until-observed-return"
+    },
+    {
+      "id": "reson",
+      "voice": "collective",
+      "execution": "runtime-active",
+      "object_input": "общий объект или напряжение коллективного поля",
+      "subject_trace": "раздельно предъявленные голоса и связи участников",
+      "reflected_image": "собранная карта поля без слияния голосов",
+      "target_relation": "согласовать проверяемый коллективный переход",
+      "context": "коллективное поле РЕЗОН",
+      "q_policy": "null-until-observed-return"
+    },
+    {
+      "id": "module",
+      "voice": "subject",
+      "execution": "runtime-active",
+      "object_input": "намерение материализации, заданное пользователем",
+      "subject_trace": "индукция, инверсия и явно выбранный следующий ход",
+      "reflected_image": "собранная формула Аз × Буки × Передача",
+      "target_relation": "материализовать форму, не присваивая символической сборке истинность",
+      "context": "49 × 24 × 7",
+      "q_policy": "null-until-observed-return"
+    },
+    {
+      "id": "voidocr",
+      "voice": "subject",
+      "execution": "runtime-active",
+      "object_input": "событие, ставшее точкой внимания",
+      "subject_trace": "различение до и после обязательной паузы",
+      "reflected_image": "тип Δ и устойчивость проявившейся формы",
+      "target_relation": "сделать форму наблюдаемой до преждевременного называния",
+      "context": "пустота → форма",
+      "q_policy": "null-until-observed-return"
+    },
+    {
+      "id": "axis-interface",
+      "voice": "subject",
+      "execution": "prototype-profile",
+      "object_input": "текущая точка и выбранные полюса",
+      "subject_trace": "направление осевого выбора",
+      "reflected_image": "видимая геометрия оси",
+      "target_relation": "проверить направление до запуска сложного перехода",
+      "context": "ось и полюса",
+      "q_policy": "null-until-observed-return"
+    },
+    {
+      "id": "skellu",
+      "voice": "subject",
+      "execution": "embedded-runtime",
+      "object_input": "голос и контекст без автоматического присвоения смысла",
+      "subject_trace": "различённый речевой вектор",
+      "reflected_image": "текстовое или числовое представление голоса",
+      "target_relation": "передать голос в следующий контур без подмены источника",
+      "context": "голос → вектор",
+      "q_policy": "null-until-observed-return"
+    },
+    {
+      "id": "demons-guardians",
+      "voice": "system",
+      "execution": "prototype-profile",
+      "object_input": "предложение перехода",
+      "subject_trace": "основания, предъявленные субъектом",
+      "reflected_image": "формализованное решение порога",
+      "target_relation": "пропустить, удержать или вернуть переход на пересборку с причиной",
+      "context": "пороги LOVE и MEASURE",
+      "q_policy": "null-until-observed-return"
+    },
+    {
+      "id": "meta-core-v2",
+      "voice": "system",
+      "execution": "prototype-profile",
+      "object_input": "состояние и задача перехода",
+      "subject_trace": "последовательность NEG → GOV → META → DEMONS",
+      "reflected_image": "оркестрированный маршрут проверок",
+      "target_relation": "собрать проверяемую последовательность перехода",
+      "context": "каскад Meta Core v2",
+      "q_policy": "null-until-observed-return"
+    },
+    {
+      "id": "collective-meta-core",
+      "voice": "collective",
+      "execution": "runtime-active",
+      "object_input": "общий объект 2–6 голосов",
+      "subject_trace": "явные связи доверия между раздельными голосами",
+      "reflected_image": "решение ALLOW или HOLD и названные ворота",
+      "target_relation": "проверить предъявленность связей и проводимость общего объекта",
+      "context": "коллективное поле",
+      "q_policy": "null-until-observed-return"
+    },
+    {
+      "id": "tzar-qengine",
+      "voice": "system",
+      "execution": "candidate-runtime",
+      "object_input": "явные Request, Context и Policy",
+      "subject_trace": "шесть отдельных EngineResult",
+      "reflected_image": "completed, denied, suspended или failed отдельно от инварианта",
+      "target_relation": "исполнить проверяемый переход fail-closed",
+      "context": "QP · QR · QG · QA · QC · QI",
+      "q_policy": "null-until-observed-return"
+    },
+    {
+      "id": "subject-core",
+      "voice": "subject",
+      "execution": "embedded-runtime",
+      "object_input": "намерение субъекта",
+      "subject_trace": "явно удерживаемая ось следующего хода",
+      "reflected_image": "представление намерения в голосовом или игровом контуре",
+      "target_relation": "сохранить источник действия в субъектном Ядре",
+      "context": "точка субъекта",
+      "q_policy": "null-until-observed-return"
+    },
+    {
+      "id": "alphabet-singularity",
+      "voice": "artifact",
+      "execution": "embedded-corpus",
+      "object_input": "авторский материал, к которому применяется выбор Аза",
+      "subject_trace": "явное подтверждение выбранного Аза",
+      "reflected_image": "один из 49 знаков и его семантическое описание",
+      "target_relation": "дать первичный язык различения без автоматической истинности",
+      "context": "49 Азов",
+      "q_policy": "null-until-observed-return"
+    },
+    {
+      "id": "az-buki",
+      "voice": "artifact",
+      "execution": "embedded-corpus",
+      "object_input": "различённый материал для комбинаторной сборки",
+      "subject_trace": "явно выбранная пара Аз × Бука",
+      "reflected_image": "одно из 1176 сочетаний",
+      "target_relation": "связать внутреннее различение с формой действия",
+      "context": "49 × 24",
+      "q_policy": "null-until-observed-return"
+    },
+    {
+      "id": "seven-transmissions",
+      "voice": "collective",
+      "execution": "runtime-active",
+      "object_input": "объект поля, напряжение и предъявленные голоса",
+      "subject_trace": "владелец, окно и наблюдаемый следующий шаг",
+      "reflected_image": "выбранный режим одной из 7 Передач",
+      "target_relation": "перевести коллективное поле в явный режим перехода",
+      "context": "семь режимов Передачи",
+      "q_policy": "null-until-observed-return"
+    },
+    {
+      "id": "transition-spells",
+      "voice": "artifact",
+      "execution": "planned-profile",
+      "object_input": "символический материал будущего речевого перехода",
+      "subject_trace": "будущая авторская формулировка обращения",
+      "reflected_image": "речевая форма перехода",
+      "target_relation": "соединить символический материал с исполнимым обращением и ответом",
+      "context": "речь → переход",
+      "q_policy": "null-until-observed-return"
+    },
+    {
+      "id": "saver",
+      "voice": "system",
+      "execution": "planned-profile",
+      "object_input": "переносимый пакет авторского контура",
+      "subject_trace": "явно подписанная операция загрузки или сохранения",
+      "reflected_image": "контейнер и его проверяемый манифест",
+      "target_relation": "сохранить локальность, переносимость и авторские границы",
+      "context": "контейнер",
+      "q_policy": "null-until-observed-return"
+    },
+    {
+      "id": "offline-translator",
+      "voice": "collective",
+      "execution": "runtime-active",
+      "object_input": "исходный текст дословно",
+      "subject_trace": "выбранный пользователем перевод и утверждённая локальная память",
+      "reflected_image": "кандидаты перевода и обратная проверка",
+      "target_relation": "передать смысл между EN и RU без скрытой передачи данных",
+      "context": "локальный переводческий узел РЕЗОН",
+      "q_policy": "null-until-observed-return"
+    },
+    {
+      "id": "private-corporate-contour",
+      "voice": "system",
+      "execution": "private-profile-only",
+      "object_input": "не публикуется",
+      "subject_trace": "не публикуется",
+      "reflected_image": "публично фиксируется только наличие контура",
+      "target_relation": "сохранить закрытость корпоративной архитектуры",
+      "context": "сведения закрыты",
+      "q_policy": "null-until-observed-return"
+    },
+    {
+      "id": "private-research-contour",
+      "voice": "system",
+      "execution": "private-profile-only",
+      "object_input": "не публикуется",
+      "subject_trace": "не публикуется",
+      "reflected_image": "публично фиксируется только место исследовательского контура",
+      "target_relation": "сохранить закрытой содержательную исследовательскую архитектуру",
+      "context": "сведения закрыты",
+      "q_policy": "null-until-observed-return"
+    }
+  ]
+}

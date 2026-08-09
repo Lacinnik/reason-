@@ -1,4 +1,6 @@
-export const SESSION_SCHEMA = "architectonica.seven-transmissions-session/1.0.0";
+import { compileTzarLanguage } from "../tzar-language-001.mjs";
+
+export const SESSION_SCHEMA = "architectonica.seven-transmissions-session/1.1.0";
 const KEYWORDS = [
   ["TX7", ["заново","перезапуск","отпустить","устарел","закрыть","обнул"]],
   ["TX5", ["результат","сделать","выпустить","артефакт","срок","материал"]],
@@ -39,6 +41,23 @@ export function buildSession(draft, catalog, environment = {}) {
   const now = environment.now || (() => new Date().toISOString());
   const uuid = environment.uuid || (() => globalThis.crypto?.randomUUID?.() || "tx-" + Date.now());
   const ready = draft.voiceGate === "presented";
+  const language = compileTzarLanguage({
+    object: draft.object,
+    subjectTrace: draft.voiceTrace,
+    innerImage: draft.tension,
+    coreNeed: draft.nextStep,
+    supra: "сохранить отдельные предъявленные голоса без слияния",
+    nextExperiment: draft.nextStep,
+    riemann: `${draft.owner.trim()} предъявит возврат в окно ${draft.window.trim()}`,
+    observedQ: null,
+  }, {
+    profile: "seven-transmissions",
+    voice: "collective",
+    targetRelation: "перевести коллективное поле в явный режим и наблюдаемый следующий шаг",
+    context: `РЕЗОН · ${transmission.symbol} ${transmission.title}`,
+    subjectConfirmed: ready,
+    txBias: { [transmission.id]: 1000 },
+  });
   return {
     schema: SESSION_SCHEMA,
     id: uuid(),
@@ -55,8 +74,9 @@ export function buildSession(draft, catalog, environment = {}) {
     window: draft.window.trim(),
     voiceGate: draft.voiceGate,
     outcome: ready ? "ready" : "hold",
+    language,
     evidence: ["user-declared-object", "named-voices", "selected-transmission", "user-declared-voice-gate"],
-    boundary: "The deck records explicit statements only; silence is never treated as consent and no hidden group state is inferred.",
+    boundary: "The deck records explicit statements only; public language and symbolic formula remain separate, Q=null until observed return, silence is never treated as consent, and no hidden group state is inferred.",
     storage: "local-browser-only",
   };
 }

@@ -11,8 +11,11 @@ test('Collective Field Check ships a complete local decision flow', async () => 
     readFile(new URL('app.js', root), 'utf8'),
   ]);
   for (const stage of ['setup', 'field', 'result']) assert.match(html, new RegExp(`data-stage=["']${stage}["']`, 'u'));
-  assert.match(html, /COLLECTIVE META CORE · STABLE 1\.0/u);
-  assert.match(js, /reson\.collective-meta-decision\/1\.0\.0/u);
+  assert.match(html, /COLLECTIVE META CORE · 1\.1 · TZAR-LANGUAGE-001/u);
+  assert.match(html, /Q̂/u);
+  assert.match(js, /reson\.collective-meta-decision\/1\.1\.0/u);
+  assert.match(js, /compileTzarLanguage/u);
+  assert.match(js, /q: null/u);
   assert.match(js, /linksVerified/u);
   assert.match(js, /value >= \.75/u);
   assert.match(js, /names\.length >= 2 && names\.length <= 6/u);
@@ -29,5 +32,6 @@ test('Collective Field Check has no external runtime dependency', async () => {
   const html = await readFile(new URL('index.html', root), 'utf8');
   assert.doesNotMatch(html, /https?:\/\//u);
   assert.match(html, /\.\/app\.js/u);
+  assert.match(html, /type="module"/u);
   assert.match(html, /\.\/styles\.css/u);
 });
