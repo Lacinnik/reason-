@@ -1,5 +1,5 @@
 const VERSION = '2.0.0';
-const CACHE_REVISION = 'evidence-acceptance-20260920-r2';
+const CACHE_REVISION = 'memory-integrity-20260920-r3';
 const SHELL_CACHE = `rte-shell-${VERSION}-${CACHE_REVISION}`;
 const RUNTIME_CACHE = `rte-runtime-${VERSION}-${CACHE_REVISION}`;
 const PINNED_TRANSFORMERS = 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.7.2';

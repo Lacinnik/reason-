@@ -55,3 +55,74 @@ test('glossary, settings, export and import survive the fallback backend', async
   assert.deepEqual(await target.getSetting('runtime'), { candidateCount: 3, deepCheck: true });
   assert.equal((await target.findExactMemory('ru-en', 'Поле удерживает форму.')).target, 'The field holds the form.');
 });
+
+test('unapproved pairs remain exportable but never enter exact or fuzzy recall', async () => {
+  const storage = new RTEStorage();
+  await storage.saveMemory({ direction: 'en-ru', source: 'The field holds form.', target: 'Черновик.', approved: false });
+  assert.equal(await storage.findExactMemory('en-ru', 'The field holds form.'), null);
+  assert.equal(await storage.findBestMemory('en-ru', 'The field holds form.', 0), null);
+  assert.equal((await storage.exportBundle()).memory.length, 1);
+});
+
+test('import requires explicit boolean approval, without promoting missing or string flags', async () => {
+  const storage = new RTEStorage();
+  for (const approved of [undefined, false, 'true', 1, true]) {
+    await storage.importBundle({ format: 'rte-resonance-bundle', memory: [
+      { direction: 'en-ru', source: 'A field.', target: 'Поле.', approved },
+    ] });
+    assert.equal(Boolean(await storage.findExactMemory('en-ru', 'A field.')), approved === true);
+  }
+});
+
+test('damaged fallback data is not silently replaced with an empty store', async () => {
+  for (const raw of ['{broken', '{}', '[null]']) {
+    localStorage.setItem('rte:v2:memory', raw);
+    const storage = new RTEStorage();
+    await assert.rejects(storage.saveMemory({ direction: 'en-ru', source: 'A', target: 'Б' }));
+    assert.equal(localStorage.getItem('rte:v2:memory'), raw);
+  }
+});
+
+test('fallback verifies writes instead of reporting a silent storage failure as success', async () => {
+  const original = globalThis.localStorage;
+  globalThis.localStorage = { getItem: () => null, setItem: () => {} };
+  try {
+    await assert.rejects(new RTEStorage().setSetting('runtime', {}), /сохранение/);
+  } finally { globalThis.localStorage = original; }
+});
+
+for (const operation of ['put', 'remove', 'clear']) {
+  for (const finish of ['complete', 'abort']) {
+    test(`IndexedDB ${operation} waits for transaction ${finish}, not request success`, async () => {
+      const storage = new RTEStorage();
+      let transaction;
+      let request;
+      const objectStore = Object.fromEntries(['put', 'delete', 'clear'].map((name) => [name, () => {
+        request = {};
+        return request;
+      }]));
+      storage.dbPromise = Promise.resolve({ transaction: () => {
+        transaction = { objectStore: () => objectStore };
+        return transaction;
+      } });
+      let settled = false;
+      const pending = operation === 'put' ? storage.put('memory', { id: 'test' })
+        : operation === 'remove' ? storage.remove('memory', 'test') : storage.clear('memory');
+      const observed = pending.then(() => { settled = true; }, () => { settled = true; });
+      await new Promise((resolve) => setImmediate(resolve));
+      request.onsuccess?.();
+      await new Promise((resolve) => setImmediate(resolve));
+      assert.equal(settled, false);
+      if (finish === 'abort') {
+        transaction.error = new Error('Late quota abort');
+        transaction.onabort();
+        await assert.rejects(pending, /Late quota abort/);
+      } else {
+        transaction.oncomplete();
+        await pending;
+      }
+      await observed;
+      assert.equal(settled, true);
+    });
+  }
+}

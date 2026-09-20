@@ -40,15 +40,30 @@ export class RTEStorage {
   }
 
   fallbackRead(store) {
-    try {
-      return JSON.parse(localStorage.getItem(`${FALLBACK_PREFIX}${store}`) || '[]');
-    } catch {
-      return [];
+    const raw = localStorage.getItem(`${FALLBACK_PREFIX}${store}`);
+    const values = raw === null ? [] : JSON.parse(raw);
+    if (!Array.isArray(values) || values.some((item) => !item || typeof item !== 'object' || Array.isArray(item))) {
+      throw new Error('Повреждено локальное хранилище. Исходные данные сохранены без изменений.');
     }
+    return values;
   }
 
   fallbackWrite(store, values) {
-    localStorage.setItem(`${FALLBACK_PREFIX}${store}`, JSON.stringify(values));
+    const key = `${FALLBACK_PREFIX}${store}`;
+    const encoded = JSON.stringify(values);
+    localStorage.setItem(key, encoded);
+    if (localStorage.getItem(key) !== encoded) throw new Error('Не удалось подтвердить сохранение данных.');
+  }
+
+  async mutate(store, operation, result) {
+    const db = await this.dbPromise;
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction(store, 'readwrite');
+      transaction.oncomplete = () => resolve(result);
+      transaction.onabort = () => reject(transaction.error || new Error('Транзакция отменена; сохранение не подтверждено.'));
+      transaction.onerror = () => reject(transaction.error || new Error('Ошибка транзакции.'));
+      operation(transaction.objectStore(store));
+    });
   }
 
   async getAll(store) {
@@ -84,11 +99,7 @@ export class RTEStorage {
       this.fallbackWrite(store, values);
       return item;
     }
-    return new Promise((resolve, reject) => {
-      const request = db.transaction(store, 'readwrite').objectStore(store).put(item);
-      request.onsuccess = () => resolve(item);
-      request.onerror = () => reject(request.error);
-    });
+    return this.mutate(store, (objectStore) => objectStore.put(item), item);
   }
 
   async remove(store, key) {
@@ -98,11 +109,7 @@ export class RTEStorage {
       this.fallbackWrite(store, values);
       return;
     }
-    await new Promise((resolve, reject) => {
-      const request = db.transaction(store, 'readwrite').objectStore(store).delete(key);
-      request.onsuccess = () => resolve();
-      request.onerror = () => reject(request.error);
-    });
+    await this.mutate(store, (objectStore) => objectStore.delete(key));
   }
 
   async clear(store) {
@@ -111,11 +118,7 @@ export class RTEStorage {
       this.fallbackWrite(store, []);
       return;
     }
-    await new Promise((resolve, reject) => {
-      const request = db.transaction(store, 'readwrite').objectStore(store).clear();
-      request.onsuccess = () => resolve();
-      request.onerror = () => reject(request.error);
-    });
+    await this.mutate(store, (objectStore) => objectStore.clear());
   }
 
   async ensureDefaults() {
@@ -158,7 +161,7 @@ export class RTEStorage {
       source: String(source).trim(),
       sourceNorm,
       target: String(target).trim(),
-      approved,
+      approved: approved === true,
       createdAt: existing?.createdAt || nowIso(),
       updatedAt: nowIso(),
       usageCount: (existing?.usageCount || 0) + 1,
@@ -177,13 +180,14 @@ export class RTEStorage {
   async findExactMemory(direction, source) {
     const id = `${direction}:${hashString(normalizeText(source))}`;
     const item = await this.get('memory', id);
-    return item && item.sourceNorm === normalizeText(source) ? item : null;
+    return item?.approved === true && item.sourceNorm === normalizeText(source) ? item : null;
   }
 
   async findBestMemory(direction, source, threshold = 0.86) {
     const items = await this.listMemory(direction);
     let best = null;
     for (const item of items) {
+      if (item.approved !== true) continue;
       const score = textSimilarity(source, item.source);
       if (!best || score > best.score) best = { item, score };
     }
@@ -235,7 +239,7 @@ export class RTEStorage {
         direction: item.direction,
         source: item.source,
         target: item.target,
-        approved: item.approved !== false,
+        approved: item.approved === true,
         metadata: { ...(item.metadata || {}), imported: true },
       });
     }
