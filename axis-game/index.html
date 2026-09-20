@@ -53,6 +53,7 @@
     <div class="sigil"><div class="axis-mark"></div></div>
     <h1>ОСЬ</h1><h2>игра сохранения сущего</h2>
     <p class="thesis">Усиливай позицию в градиенте, не теряя <b>осевания</b>.</p>
+    <p class="help-note">Учебный прототип: баллы отражают совпадение с ключами игровых ситуаций, а не измерение личности или доказанную эффективность.</p>
     <button class="primary" id="start">КАЛИБРОВКА И ВХОД</button>
     <button class="small-link" id="rulesLink">посмотреть правила</button>
   </section>
@@ -106,6 +107,8 @@
     <div class="brand">Калибровка завершена</div><h2 id="endTitle">ПОЗИЦИЯ СОБРАНА</h2>
     <div class="score-ring" id="scoreRing"><div><b id="score">0</b><span>КОГЕРЕНТНОСТЬ</span></div></div>
     <p class="reading" id="reading"></p>
+    <p class="help-note">Игровой результат, не психологическая диагностика. Внешний возврат Q не измерялся.</p>
+    <p class="help-note" id="saveStatus" role="status"></p>
     <div class="end-actions"><button class="primary" id="again">НОВЫЙ ПРОХОД</button><button class="secondary" id="share">СОХРАНИТЬ РЕЗУЛЬТАТ</button></div>
   </section>
 </main>
@@ -150,6 +153,7 @@
   }
   function updateStats(){[['axis',state.axis],['measure',state.measure],['grad',state.grad]].forEach(([k,v])=>{$(`#${k}N`).textContent=clamp(v);$(`#${k}B`).style.width=clamp(v)+'%'});window.fieldState=state}
   function resolve(){
+    if(!state || state.i>=state.deck.length || state.log.length!==state.i || !selectedG || !selectedO)return;
     const n=state.deck[state.i], gExact=selectedG===n.g, oExact=selectedO===n.o, gNear=n.nearG.includes(selectedG),oNear=n.nearO.includes(selectedO);
     const quality=(gExact?2:gNear?1:0)+(oExact?2:oNear?1:0);
     let da=[-12,-5,3,8,11][quality],dm=[-10,-4,2,7,10][quality],dg=[2,5,8,11,13][quality];
@@ -164,11 +168,19 @@
     const balance=100-Math.abs(state.axis-state.grad)*.55, avg=state.log.reduce((s,x)=>s+x.quality,0)/(state.log.length*4)*100;state.score=clamp(state.axis*.35+state.measure*.2+state.grad*.2+balance*.1+avg*.15);
     let title,read;if(state.score>=85){title='ИНВАРИАНТ ПРОВЕДЁН';read='Ты усилил позицию, не отдав ось градиенту. Воздействие сохранило меру, а движение осталось сообразным сущему.'}else if(state.score>=68){title='ПОЗИЦИЯ СОБРАНА';read='Ось выдержала прохождение. В отдельных узлах скорость движения опережала различение, но поле сохранило проводимость.'}else if(state.score>=48){title='ОСЬ ТРЕБУЕТ СБОРКИ';read='Градиент возник, однако часть движения оплачена потерей несущей способности. Следующий проход начни с различения геометрии.'}else{title='ПОЛЕ ЗАХВАТИЛО ПОЗИЦИЮ';read='Решения отвечали на давление искажений, а не на инвариант. Это не поражение: теперь виден сам механизм сноса.'}
     $('#endTitle').textContent=title;$('#score').textContent=state.score;$('#reading').textContent=read;$('#scoreRing').style.background=`conic-gradient(var(--cyan) ${state.score*3.6}deg,#133543 0)`;
-    const best=Math.max(state.score,+(localStorage.getItem('tzar-axis-best')||0));localStorage.setItem('tzar-axis-best',best);show('end');tone(700,.28)
+    show('end');
+    try{
+      const raw=localStorage.getItem('tzar-axis-best'),previous=raw===null?0:Number(raw);
+      if(!Number.isFinite(previous)||previous<0||previous>100)throw new Error('invalid record');
+      const best=String(Math.max(state.score,previous));localStorage.setItem('tzar-axis-best',best);
+      if(localStorage.getItem('tzar-axis-best')!==best)throw new Error('write not confirmed');
+      $('#saveStatus').textContent='Лучший игровой балл сохранён на этом устройстве.';
+    }catch(e){$('#saveStatus').textContent='Результат показан, но сохранение рекорда не подтверждено. Доступные прежние данные не удалены.';}
+    tone(700,.28)
   }
   function share(){const txt=`ОСЬ · ТзАрх\nКогерентность: ${state.score}/100\nОсь: ${state.axis} · Мера: ${state.measure} · Градиент: ${state.grad}\nИнвариант усиливается не нажимом, а сообразованием.`;if(navigator.share)navigator.share({title:'ОСЬ · ТзАрх',text:txt}).catch(()=>{});else navigator.clipboard?.writeText(txt).then(()=>toast())}
   function toast(){const t=$('#toast');t.classList.add('on');setTimeout(()=>t.classList.remove('on'),1700)}
-  $('#start').onclick=()=>openHelp('start');$('#rulesLink').onclick=()=>openHelp('start');$('#gameHelp').onclick=()=>openHelp('return');$('#again').onclick=newGame;$('#resolve').onclick=resolve;$('#next').onclick=()=>{if(++state.i>=state.deck.length)finish();else render()};$('#share').onclick=share;
+  $('#start').onclick=()=>openHelp('start');$('#rulesLink').onclick=()=>openHelp('start');$('#gameHelp').onclick=()=>openHelp('return');$('#again').onclick=newGame;$('#resolve').onclick=resolve;$('#next').onclick=()=>{if(!state||state.i>=state.deck.length||state.log.length!==state.i+1)return;if(++state.i>=state.deck.length)finish();else render()};$('#share').onclick=share;
   $('#closeHelp').onclick=()=>helpIntent==='start'?newGame():show(lastScreen);
   const c=$('#field'),ctx=c.getContext('2d');let W,H,t=0,particles=[];
   function size(){const d=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;c.width=W*d;c.height=H*d;c.style.width=W+'px';c.style.height=H+'px';ctx.setTransform(d,0,0,d,0,0);particles=Array.from({length:34},()=>({a:Math.random()*7,r:50+Math.random()*Math.min(W,H)*.65,s:(Math.random()-.5)*.002,z:.4+Math.random()*1.4}))}
