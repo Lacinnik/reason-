@@ -11,7 +11,7 @@ const KEYWORDS = [
 ];
 
 export function cleanVoices(value) {
-  return [...new Set(String(value || "").split(/[\n,;]+/u).map(item => item.trim()).filter(Boolean))].slice(0, 8);
+  return [...new Set(String(value || "").split(/[\n,;]+/u).map(item => item.trim()).filter(Boolean))];
 }
 
 export function suggestTransmission(text) {
@@ -24,6 +24,7 @@ export function validateSession(draft, catalog) {
   const errors = [];
   if (String(draft.object || "").trim().split(/\s+/u).filter(Boolean).length < 3) errors.push("OBJECT_INCOMPLETE");
   if (String(draft.tension || "").trim().split(/\s+/u).filter(Boolean).length < 3) errors.push("TENSION_INCOMPLETE");
+  if (cleanVoices(draft.voices).length > 8) errors.push("VOICES_OVERFLOW");
   if (cleanVoices(draft.voices).length < 2) errors.push("VOICES_INCOMPLETE");
   if (!catalog.some(item => item.id === draft.txId)) errors.push("TRANSMISSION_REQUIRED");
   if (String(draft.voiceTrace || "").trim().split(/\s+/u).filter(Boolean).length < 3) errors.push("TRACE_INCOMPLETE");

@@ -17,11 +17,11 @@ test('Collective Field Check ships a complete local decision flow', async () => 
   assert.match(js, /compileTzarLanguage/u);
   assert.match(js, /q: null/u);
   assert.match(js, /linksVerified/u);
-  assert.match(js, /value >= \.75/u);
+  assert.match(js, /assessField/u);
   assert.match(js, /names\.length >= 2 && names\.length <= 6/u);
   assert.match(js, /toLocaleLowerCase\("ru-RU"\)/u);
   assert.doesNotMatch(js, /slice\(0, 6\)/u);
-  assert.match(js, /localStorage\.setItem/u);
+  assert.match(js, /persistValue/u);
   assert.match(js, /document\.body\.append\(link\)/u);
   assert.match(js, /setTimeout\(\(\) =>/u);
   assert.match(js, /serviceWorker\.register\("\.\.\/sw\.js"\)/u);

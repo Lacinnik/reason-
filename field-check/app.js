@@ -1,3 +1,5 @@
+import { persistValue } from "../local-journal.mjs";
+import { assessField } from "./runtime.mjs";
 import { compileTzarLanguage } from "../tzar-language-001.mjs";
 
 (() => {
@@ -40,13 +42,13 @@ import { compileTzarLanguage } from "../tzar-language-001.mjs";
     const names = cleanNames($("#participants").value);
     if (title.length < 3 || names.length < 2 || names.length > 6) return;
     state.title = title;
-    state.subjects = names.map((name, index) => ({ id: `s${index + 1}`, name, trustTo: "", alpha: .75, qualityHypothesis: .75, T: .75 }));
+    state.subjects = names.map((name, index) => ({ id: `s${index + 1}`, name, trustTo: "", alpha: null, qualityHypothesis: null, T: null }));
     renderSubjects();
     setStage("field");
   }
 
   function metricControl(subject, key, label) {
-    return `<div class="metric-control"><header><span>${label}</span><output data-output="${subject.id}-${key}">0.75</output></header><input type="range" min="0" max="1" step="0.25" value="0.75" data-subject="${subject.id}" data-metric="${key}" aria-label="${label} · ${escapeHtml(subject.name)}"></div>`;
+    return `<div class="metric-control"><header><span>${label}</span><output data-output="${subject.id}-${key}">не предъявлено</output></header><input type="number" min="0" max="1" step="0.25" placeholder="0–1" data-subject="${subject.id}" data-metric="${key}" aria-label="${label} · ${escapeHtml(subject.name)}"></div>`;
   }
 
   function renderSubjects() {
@@ -61,22 +63,14 @@ import { compileTzarLanguage } from "../tzar-language-001.mjs";
     }));
     document.querySelectorAll("[data-metric]").forEach(input => input.addEventListener("input", () => {
       const subject = state.subjects.find(item => item.id === input.dataset.subject);
-      subject[input.dataset.metric] = Number(input.value);
-      document.querySelector(`[data-output="${subject.id}-${input.dataset.metric}"]`).textContent = Number(input.value).toFixed(2);
+      subject[input.dataset.metric] = input.value === "" || !input.validity.valid ? null : Number(input.value);
+      document.querySelector(`[data-output="${subject.id}-${input.dataset.metric}"]`).textContent = subject[input.dataset.metric] === null ? "не предъявлено" : Number(input.value).toFixed(2);
     }));
   }
 
-  function average(key) {
-    return state.subjects.reduce((sum, subject) => sum + subject[key], 0) / state.subjects.length;
-  }
-
   function evaluate() {
-    const linksVerified = state.subjects.every(subject => subject.trustTo && subject.trustTo !== subject.id);
-    const metrics = { alpha: average("alpha"), qualityHypothesis: average("qualityHypothesis"), T: average("T") };
-    const metricsReady = Object.values(metrics).every(value => value >= .75);
-    const gate = !linksVerified ? "trust" : !metricsReady ? "metrics" : "ok";
-    const allow = gate === "ok";
-    state.decision = {
+    const { linksVerified, metrics, gate, allow } = assessField(state.subjects);
+    const decision = {
       schema: "reson.collective-meta-decision/1.1.0",
       id: globalThis.crypto?.randomUUID?.() || `field-${Date.now()}`,
       ts: new Date().toISOString(),
@@ -91,13 +85,13 @@ import { compileTzarLanguage } from "../tzar-language-001.mjs";
       q: null,
     };
     const links = state.subjects.map(subject => `${subject.name} → ${state.subjects.find(item => item.id === subject.trustTo)?.name || "связь не предъявлена"}`).join("; ");
-    state.decision.language = compileTzarLanguage({
+    decision.language = compileTzarLanguage({
       object: state.title,
       subjectTrace: links,
-      innerImage: `gate=${gate}; α=${metrics.alpha.toFixed(2)}; Q̂=${metrics.qualityHypothesis.toFixed(2)}; T=${metrics.T.toFixed(2)}`,
+      innerImage: `gate=${gate}; α=${metrics.alpha ?? "null"}; Q̂=${metrics.qualityHypothesis ?? "null"}; T=${metrics.T ?? "null"}`,
       coreNeed: allow ? "провести общий объект к следующему коллективному синтезу" : "допредъявить связи и проводимость поля",
       supra: "сохранить отдельность голосов и явность связей",
-      nextExperiment: allow ? "назвать владельца следующего коллективного шага" : "вернуться к непредъявленным связям",
+      nextExperiment: allow ? "назвать владельца следующего коллективного шага" : gate === "trust" ? "вернуться к непредъявленным связям" : gate === "missing-metrics" ? "явно предъявить недостающие предварительные оценки" : "пересмотреть предварительные оценки ниже порога",
       riemann: "фактический возврат группы после следующего действия",
       observedQ: null,
     }, {
@@ -105,9 +99,13 @@ import { compileTzarLanguage } from "../tzar-language-001.mjs";
       voice: "collective",
       targetRelation: "проверить предъявленность связей и проводимость общего объекта",
       context: `РЕЗОН Field Check · gate=${gate}`,
-      subjectConfirmed: linksVerified,
+      subjectConfirmed: false,
     });
-    localStorage.setItem("reson.collective-meta.last-decision.v1", JSON.stringify(state.decision));
+    let saved;
+    try { saved = persistValue(localStorage, "reson.collective-meta.last-decision.v1", decision); } catch { saved = { ok: false }; }
+    $("#storage-error").textContent = saved.ok ? "" : "Решение не сохранено: хранилище недоступно. Результат не выдан.";
+    if (!saved.ok) return;
+    state.decision = decision;
     renderDecision();
     setStage("result");
   }
@@ -116,8 +114,8 @@ import { compileTzarLanguage } from "../tzar-language-001.mjs";
     const decision = state.decision;
     $("#decision").textContent = decision.allow ? "ALLOW" : "HOLD";
     $("#decision").classList.toggle("hold", !decision.allow);
-    $("#decision-title").textContent = decision.allow ? "Поле готово к синтезу." : decision.gate === "trust" ? "Связи ещё не предъявлены." : "Проводимость пока недостаточна.";
-    $("#decision-copy").textContent = decision.allow ? "Каждый участник предъявил связь, а средние α, Q̂ и T удерживают порог 0.75. Q остаётся null до фактического возврата." : decision.gate === "trust" ? "У каждого участника должна быть явно выбрана связь с другим голосом поля; Q остаётся null." : "Связи предъявлены, но хотя бы одна предварительная метрика ниже порога 0.75; Q остаётся null.";
+    $("#decision-title").textContent = decision.allow ? "Предварительный порог по заявленным оценкам пройден." : decision.gate === "trust" ? "Связи ещё не предъявлены." : decision.gate === "missing-metrics" ? "Оценки ещё не предъявлены." : "Предварительный порог не пройден.";
+    $("#decision-copy").textContent = decision.allow ? "Оператор указал связи и оценки для каждого участника; средние α, Q̂ и T удерживают порог 0.75. Это не независимая проверка согласия или эффективности. Q остаётся null." : decision.gate === "trust" ? "У каждого участника должна быть явно выбрана связь с другим голосом поля; Q остаётся null." : decision.gate === "missing-metrics" ? "Заполните все оценки явно: пустые поля сохраняются как null, а не как ноль или порог допуска." : "Связи предъявлены, но хотя бы одна предварительная метрика ниже порога 0.75; Q остаётся null.";
     $("#metrics").innerHTML = [...Object.entries(decision.avg_metrics), ["Q", null]].map(([key, value]) => `<div><span>${key}</span><b>${value == null ? "null" : value.toFixed(2)}</b></div>`).join("");
     $("#evidence").innerHTML = `<div><span>Слово поля</span><b>${escapeHtml(decision.language.layers.publicStatement)}</b></div><div><span>Сингулярная формула</span><b>${escapeHtml(decision.language.formula)}</b></div><div><span>Связи доверия</span><b>${decision.links_verified ? "предъявлены" : "неполны"}</b></div><div><span>Ворота решения</span><b>${decision.gate}</b></div><div><span>Общий объект</span><b>${escapeHtml(decision.shared_object)}</b></div><div><span>Хранение</span><b>локально</b></div>`;
   }
@@ -125,7 +123,7 @@ import { compileTzarLanguage } from "../tzar-language-001.mjs";
   function restart() {
     state.title = ""; state.subjects = []; state.decision = null;
     $("#field-title").value = ""; $("#participants").value = "";
-    validateSetup(); setStage("setup");
+    $("#storage-error").textContent = ""; validateSetup(); setStage("setup");
   }
 
   function downloadJson(filename, value) {

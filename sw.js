@@ -1,5 +1,5 @@
 const VERSION = '2.0.0';
-const CACHE_REVISION = 'tzar-language-resonance-1';
+const CACHE_REVISION = 'evidence-acceptance-20260920-r2';
 const SHELL_CACHE = `rte-shell-${VERSION}-${CACHE_REVISION}`;
 const RUNTIME_CACHE = `rte-runtime-${VERSION}-${CACHE_REVISION}`;
 const PINNED_TRANSFORMERS = 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.7.2';
@@ -14,6 +14,8 @@ const SHELL = [
   './icon.svg',
   './vendor/transformers-3.7.2.js',
   './tzar-language-001.mjs',
+  './local-journal.mjs',
+  './field-check/runtime.mjs',
   './tzar-language.profiles.json',
   './module/catalog.mjs',
   './field-check/',

@@ -145,6 +145,7 @@ function rank(corpus, weightedTexts, fallbackId, options = {}) {
   }
   return ranked;
 }
+
 function sentence(value) {
   const text = clean(value);
   return text ? text[0].toLocaleUpperCase("ru") + text.slice(1) + "." : "";
@@ -165,9 +166,8 @@ function publicStatementForVoice(voice, { object, image, need, invariant, move, 
 
 function observedQOf(value) {
   if (value == null) return null;
-  const q = Number(value);
-  if (q !== 0 && q !== 1) throw new Error("TZAR_LANGUAGE_Q_MUST_BE_OBSERVED_BINARY");
-  return q;
+  if (value !== 0 && value !== 1) throw new Error("TZAR_LANGUAGE_Q_MUST_BE_OBSERVED_BINARY");
+  return value;
 }
 
 export function compileTzarLanguage(state, options = {}) {
@@ -183,31 +183,33 @@ export function compileTzarLanguage(state, options = {}) {
   const az = azRank[0].entry;
   const buka = bukaRank[0].entry;
   const transmission = txRank[0].entry;
-  const object = clean(state.object, "наблюдаемое событие");
-  const image = clean(state.innerImage, "отражённый образ события");
+  const object = clean(state.object) || null;
+  const image = clean(state.innerImage) || null;
   const need = clean(state.coreNeed, "различить следующий живой ход");
   const invariant = clean(state.supra, "авторское основание");
   const move = clean(state.nextExperiment, transmission.action);
   const feedback = clean(state.riemann, "наблюдаемый ответ поля");
   const observedQ = observedQOf(state.observedQ);
-  const subjectTrace = clean(state.subjectTrace, need);
-  const targetRelation = clean(options.targetRelation, "проверить выбранный ход относительно предъявленной цели");
-  const context = clean(options.context, options.profile || "default");
+  const subjectTrace = clean(state.subjectTrace) || null;
+  const targetRelation = clean(options.targetRelation) || null;
+  const context = clean(options.context) || null;
+  const coordinates = { O: object, S: subjectTrace, I: image, R_g: targetRelation, C: context };
+  const missing = Object.keys(coordinates).filter(key => coordinates[key] === null);
   const voice = options.voice || "subject";
   const subjectConfirmed = Boolean(options.subjectConfirmed);
   return {
     modelId: MODEL_ID,
     modelVersion: MODEL_VERSION,
-    status: observedQ == null ? "candidate-authorial-symbolic-compiler" : "observed-return-integrated",
+    status: !object ? "HOLD-INPUT" : missing.length ? "HOLD-DATA" : observedQ == null ? "candidate-authorial-symbolic-compiler" : "observed-return-integrated",
     profile: options.profile || "default",
     profileSchema: PRODUCT_PROFILE_SCHEMA,
     corpus: CORPUS,
     formula: `${az.title} × ${buka.symbol} ${buka.title} → ${transmission.symbol} ${transmission.title}`,
     selection: { az, buka, transmission },
     layers: {
-      distinction: `O: ${sentence(object)} I: ${sentence(image)}`,
+      distinction: `O: ${object === null ? "не предъявлен" : sentence(object)} I: ${image === null ? "не предъявлен" : sentence(image)}`,
       trueRequest: `Как мне ${need}, различая факт «${object}» и его отражение «${image}», сохраняя «${invariant}», и проверить выбранный ход через «${move}»?`,
-      publicStatement: publicStatementForVoice(voice, { object, image, need: subjectTrace, invariant, move, feedback }),
+      publicStatement: missing.length ? `Недостаточно данных: ${missing.join(", ")}. Символическая связка остаётся предложением; отсутствующие сведения сохранены как null.` : publicStatementForVoice(voice, { object, image, need: subjectTrace, invariant, move, feedback }),
       nextMove: sentence(move),
       feedbackCriterion: sentence(feedback),
     },
@@ -224,17 +226,18 @@ export function compileTzarLanguage(state, options = {}) {
       C: context,
       Q: observedQ,
       evidence: {
-        O: "user-declared",
-        S: state.subjectTrace ? "user-declared" : "derived-from-declared-move",
-        I: state.innerImage ? "user-declared" : "derived-fallback",
-        R_g: options.targetRelation ? "product-profile-contract" : "generic-profile-contract",
-        C: options.context ? "product-profile-contract" : "generic-profile-contract",
+        O: object === null ? "unknown" : "user-declared",
+        S: subjectTrace === null ? "unknown" : "user-declared",
+        I: image === null ? "unknown" : "user-declared",
+        R_g: targetRelation === null ? "unknown" : "product-profile-contract",
+        C: context === null ? "unknown" : "product-profile-contract",
         Q: observedQ == null ? "unknown" : "observed",
       },
     },
     boundary: {
       selection: "deterministic-corpus-ranking-requires-subject-confirmation",
       subjectConfirmed,
+      missingCoordinates: missing,
       diagnosis: "not-performed",
       prediction: "not-performed",
       observedQ,
