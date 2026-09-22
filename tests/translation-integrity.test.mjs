@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { splitTextIntoSegments, maskInvariants, maskGlossary, restoreProtectedTranslation, hasProtectedToken, joinDocumentCandidate, generateSegmentCandidates, validateLiteralTranslation } from '../engine-core.js';
+import { DEFAULT_GLOSSARY, splitTextIntoSegments, maskInvariants, maskGlossary, restoreProtectedTranslation, hasProtectedToken, joinDocumentCandidate, generateSegmentCandidates, validateLiteralTranslation } from '../engine-core.js';
 
 test('each recorded regression sentence receives its own model request', () => {
   for (const [source, locale] of [
@@ -90,11 +90,55 @@ test('literal retry cannot accept missing numbers and stops after two calls', as
   assert.equal(calls, 2);
 });
 
-test('glossary failure does not fall back to an unprotected translation', async () => {
+test('glossary retry rejects a synonym outside the approved dictionary', async () => {
   let calls = 0;
   const engine = async () => { calls++; return [{ translation_text: 'Иной термин.' }]; };
   await assert.rejects(generateSegmentCandidates('Coherence.', engine, { glossary: [{ en: 'coherence', ru: 'когерентность' }] }));
-  assert.equal(calls, 1);
+  assert.equal(calls, 2);
+});
+
+test('damaged glossary marker recovers through a checked literal translation', async () => {
+  const inputs = [];
+  const engine = async text => {
+    inputs.push(text);
+    return [{ translation_text: inputs.length === 1 ? 'RTE0*KEN field.' : 'Coherence of the field.' }];
+  };
+  assert.deepEqual(await generateSegmentCandidates('Когерентность поля.', engine, {
+    direction: 'ru-en', glossary: [{ en: 'coherence', ru: 'когерентность' }], candidateCount: 3,
+  }), Array(3).fill('Coherence of the field.'));
+  assert.deepEqual(inputs, ['RTE0TOKEN поля.', 'Когерентность поля.']);
+});
+
+test('literal glossary requires whole terms with exact occurrence counts', () => {
+  const protectedTerms = [{ target: 'Coherence' }, { target: 'resonance' }];
+  assert.equal(validateLiteralTranslation('Когерентность и резонанс.', 'Coherence and resonance.', protectedTerms), true);
+  for (const target of ['Coherence.', 'Coherence, coherence and resonance.', 'Incoherence and resonance.', 'Coherences and resonance.', 'Consistency and resonance.', 'Coherence and RTE0TOKEN resonance.']) {
+    assert.equal(validateLiteralTranslation('Когерентность и резонанс.', target, protectedTerms), false, target);
+  }
+  assert.equal(validateLiteralTranslation('Когерентность, когерентность.', 'Coherence, coherence.', [{ target: 'Coherence' }, { target: 'coherence' }]), true);
+});
+
+test('glossary retry cannot lose or change time even with the correct term', async () => {
+  let calls = 0;
+  await assert.rejects(generateSegmentCandidates('Когерентность в 09:15.', async () => {
+    calls++;
+    return [{ translation_text: calls === 1 ? 'RTE0*KEN RTEINV0*KEN' : 'Coherence at 0915.' }];
+  }, { direction: 'ru-en', glossary: [{ ru: 'когерентность', en: 'coherence' }] }));
+  assert.equal(calls, 2);
+});
+
+test('overlapping target phrases cannot reuse one span to satisfy two entries', () => {
+  const terms = [{ target: 'field coherence' }, { target: 'coherence' }];
+  assert.equal(validateLiteralTranslation('Термины.', 'Field coherence.', terms), false);
+  assert.equal(validateLiteralTranslation('Термины.', 'Field coherence and coherence.', terms), true);
+});
+
+test('literal Cyrillic terms respect Unicode boundaries and literal regex characters', () => {
+  const terms = [{ target: 'когерентность' }];
+  assert.equal(validateLiteralTranslation('Coherence.', 'Когерентность.', terms), true);
+  assert.equal(validateLiteralTranslation('Coherence.', 'Некогерентность.', terms), false);
+  assert.equal(validateLiteralTranslation('Term.', 'a+b.', [{ target: 'a+b' }]), true);
+  assert.equal(validateLiteralTranslation('Term.', 'aaab.', [{ target: 'a+b' }]), false);
 });
 
 const observed = JSON.parse(await readFile(new URL('./fixtures/neural-20260922.json', import.meta.url), 'utf8'));
@@ -117,6 +161,22 @@ for (const record of observed.filter(item => item.version === 'after')) {
     };
     if (record.error) await assert.rejects(run, /Ни один вариант/u);
     else assert.equal(await run(), record.output);
+    assert.equal(index, record.raw.length);
+  });
+}
+
+const glossaryObserved = JSON.parse(await readFile(new URL('./fixtures/glossary-20260922.json', import.meta.url), 'utf8'));
+for (const record of glossaryObserved.filter(item => item.version === 'after')) {
+  test(`replay observed glossary model responses: ${record.source}`, async () => {
+    let index = 0;
+    const run = () => generateSegmentCandidates(record.source, async (input, options) => {
+      const call = record.raw[index++];
+      assert.equal(input, call.input);
+      assert.deepEqual(options, call.options);
+      return call.result;
+    }, { direction: record.direction, glossary: DEFAULT_GLOSSARY, candidateCount: 1 });
+    if (record.error) await assert.rejects(run, /Ни один вариант/u);
+    else assert.deepEqual(await run(), record.output);
     assert.equal(index, record.raw.length);
   });
 }

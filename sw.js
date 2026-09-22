@@ -1,5 +1,5 @@
 const VERSION = '2.0.0';
-const CACHE_REVISION = 'translation-integrity-20260922-r1';
+const CACHE_REVISION = 'glossary-integrity-20260922-r2';
 const SHELL_CACHE = `rte-shell-${VERSION}-${CACHE_REVISION}`;
 const RUNTIME_CACHE = `rte-runtime-${VERSION}-${CACHE_REVISION}`;
 const PINNED_TRANSFORMERS = 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.7.2';
@@ -112,4 +112,3 @@ self.addEventListener('fetch', (event) => {
     }),
   );
 });
-

@@ -490,7 +490,7 @@ async function runTranslation({ ignoreWholeMemory = false } = {}) {
     setLog(`Перевод завершён: ${result.segments.length} сегм., ${candidates.length} форм.${settings.deepCheck ? ' Обратная проверка выполнена.' : ''}${suffix}`, { success: true });
   } catch (error) {
     console.error(error);
-    setLog(`Ошибка: ${error?.message || error}. Проверьте свободную память и наличие первично загруженных моделей.`, { error: true });
+    setLog(`Ошибка: ${error?.message || error}`, { error: true });
   } finally {
     setBusy(false);
     setProgress(100);
