@@ -3,12 +3,11 @@ import {
   LIBRARY_VERSION,
   computeMetrics,
   formatBytes,
-  maskGlossary,
-  maskInvariants,
   normalizeText,
   rankCandidates,
-  restoreGlossary,
-  restoreInvariants,
+  hasProtectedToken,
+  joinDocumentCandidate,
+  generateSegmentCandidates,
   safeJsonParse,
   splitTextIntoSegments,
 } from './engine-core.js';
@@ -102,6 +101,7 @@ function setProgress(value, label = '') {
 function setBusy(value, label = 'Перевести') {
   state.busy = value;
   for (const button of [ui.translate, ui.swap, ui.prepareCurrent, ui.prepareAll, ui.approve]) button.disabled = value;
+  for (const control of [ui.source, ui.target, ui.clear, ui.candidateCount, ui.deepCheck, ui.glossaryEnabled, ui.deviceMode, ui.segmentSize]) control.disabled = value;
   ui.translate.textContent = value ? label : 'Перевести';
   if (!value) setProgress(100);
 }
@@ -286,24 +286,6 @@ async function ensureTranslator(dir = direction, force = false) {
   throw lastError || new Error('Не удалось загрузить модель.');
 }
 
-function normalizePipelineOutput(result) {
-  const list = Array.isArray(result) ? result : [result];
-  return list
-    .map((item) => item?.translation_text ?? item?.generated_text ?? '')
-    .map((text) => String(text).trim())
-    .filter(Boolean);
-}
-
-function looksDegenerateTranslation(source, translation) {
-  const output = String(translation || '').trim();
-  if (!output) return true;
-  if ((output.match(/\.1%/gu) || []).length >= 3) return true;
-  const tokens = normalizeText(output).split(/[^\p{L}\p{N}%]+/u).filter(Boolean);
-  if (tokens.length >= 24 && (new Set(tokens).size / tokens.length) < 0.32) return true;
-  const sourceLength = Math.max(1, String(source || '').trim().length);
-  return output.length > Math.max(480, sourceLength * 10);
-}
-
 async function translateSegment(segmentText, dir, {
   candidateCount = 1,
   glossary = glossaryEntries,
@@ -312,7 +294,7 @@ async function translateSegment(segmentText, dir, {
 } = {}) {
   if (allowMemory) {
     const exact = await storage.findExactMemory(dir, segmentText);
-    if (exact) {
+    if (exact && !hasProtectedToken(exact.target)) {
       return {
         candidates: Array.from({ length: candidateCount }, () => exact.target),
         fromMemory: true,
@@ -322,73 +304,17 @@ async function translateSegment(segmentText, dir, {
   }
 
   const bestMemory = allowMemory ? await storage.findBestMemory(dir, segmentText, 0.88) : null;
-  const invariantProtected = maskInvariants(segmentText);
-  const glossaryProtected = settings.glossaryEnabled
-    ? maskGlossary(invariantProtected.text, glossary, dir)
-    : { text: invariantProtected.text, placeholders: [] };
   const engine = await ensureTranslator(dir);
-  const beams = candidateCount > 1 ? Math.max(4, candidateCount) : 2;
-  const maxNewTokens = Math.min(512, Math.max(64, Math.ceil(segmentText.length * 1.8)));
   if (progressLabel) setLog(progressLabel);
-
-  let result;
-  try {
-    result = await engine(glossaryProtected.text, {
-      max_new_tokens: maxNewTokens,
-      num_beams: beams,
-      num_return_sequences: candidateCount,
-      early_stopping: true,
-      no_repeat_ngram_size: 3,
-      length_penalty: 1,
-      do_sample: false,
-    });
-  } catch (error) {
-    if (candidateCount > 1) {
-      console.warn('Multi-candidate generation failed; falling back to one sequence.', error);
-      result = await engine(glossaryProtected.text, {
-        max_new_tokens: maxNewTokens,
-        num_beams: 2,
-        num_return_sequences: 1,
-        early_stopping: true,
-      });
-    } else {
-      throw error;
-    }
-  }
-
-  const restored = normalizePipelineOutput(result).map((text) => {
-    const glossaryRestored = restoreGlossary(text, glossaryProtected.placeholders);
-    return restoreInvariants(glossaryRestored, invariantProtected.placeholders);
+  const restored = await generateSegmentCandidates(segmentText, engine, {
+    candidateCount, glossary: settings.glossaryEnabled ? glossary : [], direction: dir,
   });
-  if (!restored.length) throw new Error('Модель не вернула текст перевода.');
-  if (restored.every((item) => looksDegenerateTranslation(segmentText, item))) {
-    throw new Error('Модель вернула деградировавший результат. Выберите WASM, обновите страницу и повторите перевод.');
-  }
-  if (candidateCount > 1 && bestMemory?.item?.target) {
-    const memoryCandidate = bestMemory.item.target.trim();
-    if (memoryCandidate && !restored.some((item) => normalizeText(item) === normalizeText(memoryCandidate))) {
-      restored.push(memoryCandidate);
-    }
-  }
-  while (restored.length < candidateCount) restored.push(restored[0]);
   return {
     candidates: restored.slice(0, candidateCount),
     fromMemory: false,
     memoryTarget: bestMemory?.item?.target || '',
     memorySimilarity: bestMemory?.score || 0,
   };
-}
-
-function joinDocumentCandidate(segments, translatedSegments, candidateIndex) {
-  let output = '';
-  for (let i = 0; i < segments.length; i += 1) {
-    const segment = segments[i];
-    const translated = translatedSegments[i]?.candidates?.[candidateIndex]
-      || translatedSegments[i]?.candidates?.[0]
-      || '';
-    output += `${segment.prefix || ''}${translated}${segment.suffix || ''}`;
-  }
-  return output.trim();
 }
 
 async function translateDocument(text, dir, {
@@ -480,6 +406,10 @@ function selectCandidate(id) {
 
 async function runTranslation({ ignoreWholeMemory = false } = {}) {
   const sourceText = ui.source.value.trim();
+  if (hasProtectedToken(sourceText)) {
+    setLog('Исходный текст содержит зарезервированную служебную маску. Удалите её перед переводом.', { error: true });
+    return;
+  }
   if (!sourceText) {
     setLog('Введите текст для перевода.', { error: true });
     return;
@@ -487,6 +417,10 @@ async function runTranslation({ ignoreWholeMemory = false } = {}) {
 
   setBusy(true, 'Резонирую…');
   targetDirty = false;
+  ui.target.value = '';
+  lastContext = null;
+  renderLanguage();
+  updateCounts();
   currentCandidates = [];
   selectedCandidateId = null;
   ui.candidatesSection.hidden = true;
@@ -495,7 +429,7 @@ async function runTranslation({ ignoreWholeMemory = false } = {}) {
   try {
     if (!ignoreWholeMemory) {
       const exact = await storage.findExactMemory(direction, sourceText);
-      if (exact) {
+      if (exact && !hasProtectedToken(exact.target)) {
         const metrics = computeMetrics({ source: sourceText, translation: exact.target, glossaryEntries, direction });
         const candidate = { id: `memory-${Date.now()}`, text: exact.target, metrics, score: metrics.resonance, fromMemory: true };
         lastContext = { source: sourceText, direction, candidates: [candidate], selectedCandidateId: candidate.id, translatedSegments: [], segments: [] };
@@ -567,6 +501,10 @@ async function runTranslation({ ignoreWholeMemory = false } = {}) {
 async function approveTranslation() {
   const source = ui.source.value.trim();
   const target = ui.target.value.trim();
+  if (hasProtectedToken(source) || hasProtectedToken(target)) {
+    setLog('Служебную маску нельзя принять в память.', { error: true });
+    return;
+  }
   if (!source || !target) {
     setLog('Для памяти нужны исходный текст и подтверждённый перевод.', { error: true });
     return;

@@ -43,118 +43,39 @@ function sentenceParts(text, locale) {
       // Fall through to a conservative regex for older browsers.
     }
   }
-  return text.match(/[^.!?…]+(?:[.!?…]+[”»"')\]]*)?\s*/gu) || [text];
+  return text.match(/[\s\S]+?(?:[.!?…]+[”»"')\]]*(?=\s|$)|$)\s*/gu) || [text];
 }
 
-function hardWrap(text, maxChars) {
-  const words = text.trim().split(/\s+/u).filter(Boolean);
-  if (!words.length) return [];
-  const chunks = [];
-  let current = '';
-  for (const word of words) {
-    if (!current) {
-      current = word;
-      continue;
-    }
-    if ((current.length + 1 + word.length) <= maxChars) {
-      current += ` ${word}`;
-    } else {
-      chunks.push(current);
-      current = word;
-    }
-  }
-  if (current) chunks.push(current);
-  return chunks;
-}
-
-function splitOversizedSentence(sentence, maxChars) {
-  if (sentence.length <= maxChars) return [sentence.trim()];
-  const clauses = (sentence.match(/[^,;:—–-]+(?:[,;:—–-]+|$)\s*/gu) || [sentence])
-    .map((part) => part.trim())
-    .filter(Boolean);
-  if (clauses.length <= 1) return hardWrap(sentence, maxChars);
-
-  const chunks = [];
-  let current = '';
-  for (const clause of clauses) {
-    if (!current) {
-      current = clause;
-    } else if ((current.length + 1 + clause.length) <= maxChars) {
-      current += ` ${clause}`;
-    } else {
-      chunks.push(...hardWrap(current, maxChars));
-      current = clause;
-    }
-  }
-  if (current) chunks.push(...hardWrap(current, maxChars));
-  return chunks;
-}
-
-/**
- * Splits text into translation-safe chunks while preserving paragraph joins.
- * Each returned item has a `prefix` that must be inserted before its translated text.
+/** One sentence per model call; preserve all source whitespace for reconstruction.
+ * Oversized sentences split at whitespace; an indivisible token is never cut.
  */
 export function splitTextIntoSegments(text, { maxChars = 420, locale = 'ru' } = {}) {
+  if (!Number.isInteger(maxChars) || maxChars < 1) throw new Error('Invalid segment size');
   const source = String(text || '').replace(/\r\n?/g, '\n');
-  if (!source.trim()) return [];
-
-  const blocks = source.split(/(\n{2,})/u);
   const segments = [];
-  let pendingPrefix = '';
-
-  for (const block of blocks) {
-    if (!block) continue;
-    if (/^\n{2,}$/u.test(block)) {
-      pendingPrefix += block;
-      continue;
-    }
-
-    const leading = block.match(/^\s*/u)?.[0] || '';
-    const trailing = block.match(/\s*$/u)?.[0] || '';
-    const body = block.trim();
-    if (!body) {
-      pendingPrefix += block;
-      continue;
-    }
-
-    const sentences = sentenceParts(body, locale)
-      .flatMap((sentence) => splitOversizedSentence(sentence, maxChars))
-      .filter(Boolean);
-
-    let current = '';
-    let first = true;
-    for (const sentence of sentences) {
-      const clean = sentence.trim();
-      if (!clean) continue;
-      if (!current) {
-        current = clean;
-      } else if ((current.length + 1 + clean.length) <= maxChars) {
-        current += ` ${clean}`;
-      } else {
-        segments.push({
-          text: current,
-          prefix: first ? `${pendingPrefix}${leading}` : ' ',
-        });
-        pendingPrefix = '';
-        first = false;
-        current = clean;
+  let pending = '';
+  for (const line of source.split(/(\n+)/u)) {
+    if (!line.trim()) { pending += line; continue; }
+    for (const sentence of sentenceParts(line, locale)) {
+      let current = '';
+      for (const piece of sentence.match(/\s+|\S+/gu) || []) {
+        if (/^\s+$/u.test(piece)) { pending += piece; continue; }
+        if (current && current.length + pending.length + piece.length > maxChars) {
+          segments.at(-1).text = current;
+          current = '';
+        }
+        if (!current) {
+          segments.push({ text: piece, prefix: pending });
+          current = piece;
+        } else {
+          current += pending + piece;
+          segments.at(-1).text = current;
+        }
+        pending = '';
       }
     }
-
-    if (current) {
-      segments.push({
-        text: current,
-        prefix: first ? `${pendingPrefix}${leading}` : ' ',
-      });
-      pendingPrefix = trailing;
-    } else {
-      pendingPrefix += `${leading}${trailing}`;
-    }
   }
-
-  if (pendingPrefix && segments.length) {
-    segments[segments.length - 1].suffix = pendingPrefix;
-  }
+  if (pending && segments.length) segments.at(-1).suffix = pending;
   return segments;
 }
 
@@ -229,7 +150,7 @@ function multiset(values) {
 }
 
 
-const INVARIANT_REGEX = /(?:[Hh][Tt][Tt][Pp][Ss]?:\/\/[^\s]+|\b[\w.+-]+@[\w.-]+\.[\p{L}]{2,}\b|\b(?:\d+(?:[.,]\d+)*|[A-ZА-ЯЁ]{2,}\d*)\b)/gu;
+const INVARIANT_REGEX = /(?:[Hh][Tt][Tt][Pp][Ss]?:\/\/[^\s]+|\b[\w.+-]+@[\w.-]+\.[\p{L}]{2,}\b|\b(?:\d{1,2}:\d{2}(?::\d{2})?|\d+(?:[.,]\d+)*|[A-ZА-ЯЁ]{2,}\d*)\b)/gu;
 
 /**
  * Protects values that should survive translation verbatim: URLs, email addresses,
@@ -260,6 +181,56 @@ export function restoreInvariants(text = '', placeholders = []) {
     restored = restored.replace(new RegExp(`(?:${variants.join('|')})`, 'giu'), item.value);
   }
   return restored;
+}
+
+// Recognise only known spellings and the exact numeric ID. Never guess a value.
+function protectedTokenPattern(placeholder) {
+  const id = escapeRegExp(placeholder.match(/\d+/u)?.[0] || '');
+  const gap = '[-_\\s]*';
+  const prefix = '(?:RTE|РТЕ|РТЭ)';
+  const invariant = placeholder.startsWith('RTEINV') ? `${gap}(?:INV|ИНВ|ЙНВ)` : '';
+  return new RegExp(`${prefix}${invariant}${gap}${id}${gap}(?:TOKEN|ТОКЕН)(?![\\p{L}\\p{N}_])`, 'giu');
+}
+
+export function hasProtectedToken(text = '') {
+  return /(?:RTE|РТЕ|РТЭ)[-_\s]*(?:(?:I[-_\s]*N[-_\s]*V|[ИЙ][-_\s]*Н[-_\s]*В)[-_\s]*)?\d/iu.test(String(text));
+}
+
+// Literal retry is allowed only without protected glossary entries in the caller.
+export function validateLiteralTranslation(source, target) {
+  if (!String(target || '').trim() || hasProtectedToken(target)) return false;
+  const expected = multiset(maskInvariants(source).placeholders.map(item => item.value));
+  const actual = multiset(maskInvariants(target).placeholders.map(item => item.value));
+  return expected.size === actual.size && [...expected].every(([value, count]) => actual.get(value) === count);
+}
+
+/** A missing, repeated or unknown marker invalidates this entire candidate. */
+export function restoreProtectedTranslation(text, glossary = [], invariants = []) {
+  let restored = String(text || '').trim();
+  if (!restored) throw new Error('Модель не вернула текст перевода.');
+  const replacements = [...glossary.map(item => ({ ...item, value: item.target })), ...invariants];
+  // Validate before replacing so values cannot be interpreted as new markers.
+  for (const item of replacements) {
+    if ([...restored.matchAll(protectedTokenPattern(item.placeholder))].length !== 1) {
+      throw new Error('Защищённое значение потеряно или повторено. Перевод не принят.');
+    }
+  }
+  for (const item of replacements) {
+    restored = restored.replace(protectedTokenPattern(item.placeholder), () => item.value);
+  }
+  if (hasProtectedToken(restored)) throw new Error('В переводе осталась служебная маска. Перевод не принят.');
+  return restored;
+}
+
+export function joinDocumentCandidate(segments, translatedSegments, candidateIndex) {
+  if (segments.length !== translatedSegments.length) throw new Error('Не все сегменты переведены.');
+  return segments.map((segment, index) => {
+    const text = translatedSegments[index]?.candidates?.[candidateIndex];
+    if (!String(text || '').trim() || hasProtectedToken(text)) {
+      throw new Error(`Сегмент ${index + 1} не прошёл проверку. Перевод не принят.`);
+    }
+    return `${segment.prefix || ''}${text}${segment.suffix || ''}`;
+  }).join('').trim();
 }
 
 export function extractInvariants(text = '') {
@@ -430,4 +401,80 @@ export function safeJsonParse(value, fallback = null) {
   } catch {
     return fallback;
   }
+}
+
+function normalizePipelineOutput(result) {
+  const list = Array.isArray(result) ? result : [result];
+  return list
+    .map((item) => item?.translation_text ?? item?.generated_text ?? '')
+    .map((text) => String(text).trim())
+    .filter(Boolean);
+}
+
+function looksDegenerateTranslation(source, translation) {
+  const output = String(translation || '').trim();
+  if (!output) return true;
+  if ((output.match(/\.1%/gu) || []).length >= 3) return true;
+  const tokens = normalizeText(output).split(/[^\p{L}\p{N}%]+/u).filter(Boolean);
+  if (tokens.length >= 24 && (new Set(tokens).size / tokens.length) < 0.32) return true;
+  const sourceLength = Math.max(1, String(source || '').trim().length);
+  return output.length > Math.max(480, sourceLength * 10);
+}
+
+export async function generateSegmentCandidates(segmentText, engine, { candidateCount = 1, glossary = [], direction = 'en-ru' } = {}) {
+  if (![1, 3].includes(candidateCount) || hasProtectedToken(segmentText)) throw new Error('Недопустимый запрос перевода.');
+  const invariantProtected = maskInvariants(segmentText);
+  const glossaryProtected = maskGlossary(invariantProtected.text, glossary, direction);
+  const beams = candidateCount > 1 ? Math.max(4, candidateCount) : 2;
+  const maxNewTokens = Math.min(512, Math.max(64, Math.ceil(segmentText.length * 1.8)));
+
+  let result;
+  try {
+    result = await engine(glossaryProtected.text, {
+      max_new_tokens: maxNewTokens,
+      num_beams: beams,
+      num_return_sequences: candidateCount,
+      early_stopping: true,
+      no_repeat_ngram_size: 3,
+      length_penalty: 1,
+      do_sample: false,
+    });
+  } catch (error) {
+    if (candidateCount > 1) {
+      console.warn('Multi-candidate generation failed; falling back to one sequence.', error);
+      result = await engine(glossaryProtected.text, {
+        max_new_tokens: maxNewTokens,
+        num_beams: 2,
+        num_return_sequences: 1,
+        early_stopping: true,
+      });
+    } else {
+      throw error;
+    }
+  }
+
+  const restored = [];
+  for (const text of normalizePipelineOutput(result)) {
+    try {
+      const candidate = restoreProtectedTranslation(text, glossaryProtected.placeholders, invariantProtected.placeholders);
+      if (!looksDegenerateTranslation(segmentText, candidate)) restored.push(candidate);
+    } catch (error) {
+      console.warn('Candidate rejected by protected-value gate:', error.message);
+    }
+  }
+  if (!restored.length && glossaryProtected.placeholders.length === 0) {
+    // One bounded retry without synthetic markers. Accept only exact protected values.
+    const literal = await engine(segmentText, {
+      max_new_tokens: maxNewTokens, num_beams: 2, num_return_sequences: 1,
+      early_stopping: true, do_sample: false,
+    });
+    for (const text of normalizePipelineOutput(literal)) {
+      if (validateLiteralTranslation(segmentText, text) && !looksDegenerateTranslation(segmentText, text)) restored.push(text);
+    }
+  }
+  if (!restored.length) {
+    throw new Error('Ни один вариант не прошёл проверку защищённых значений и непустого результата. Перевод не принят.');
+  }
+  while (restored.length < candidateCount) restored.push(restored[0]);
+  return restored.slice(0, candidateCount);
 }

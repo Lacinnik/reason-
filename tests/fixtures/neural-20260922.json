@@ -1,0 +1,387 @@
+[
+  {
+    "dir": "en-ru",
+    "version": "before",
+    "source": "The train arrives at 10:30. Please bring two tickets.",
+    "segmentCount": 1,
+    "output": "Поезд прибывает в РТЕЙНВ0ТОКЕН.",
+    "error": null,
+    "raw": [
+      {
+        "input": "The train arrives at RTEINV0TOKEN:RTEINV1TOKEN. Please bring two tickets.",
+        "result": [
+          {
+            "translation_text": "Поезд прибывает в РТЕЙНВ0ТОКЕН."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "dir": "en-ru",
+    "version": "after",
+    "source": "The train arrives at 10:30. Please bring two tickets.",
+    "segmentCount": 2,
+    "output": "Поезд прибывает в 10:30. Пожалуйста, принесите два билета.",
+    "error": null,
+    "raw": [
+      {
+        "input": "The train arrives at RTEINV0TOKEN.",
+        "options": {
+          "max_new_tokens": 64,
+          "num_beams": 4,
+          "num_return_sequences": 3,
+          "early_stopping": true,
+          "no_repeat_ngram_size": 3,
+          "length_penalty": 1,
+          "do_sample": false
+        },
+        "result": [
+          {
+            "translation_text": "Поезд прибывает в РТЕЙНВ0ТОКЕН."
+          }
+        ]
+      },
+      {
+        "input": "Please bring two tickets.",
+        "options": {
+          "max_new_tokens": 64,
+          "num_beams": 4,
+          "num_return_sequences": 3,
+          "early_stopping": true,
+          "no_repeat_ngram_size": 3,
+          "length_penalty": 1,
+          "do_sample": false
+        },
+        "result": [
+          {
+            "translation_text": "Пожалуйста, принесите два билета."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "dir": "en-ru",
+    "version": "before",
+    "source": "The meeting starts at 09:15. Bring 3 copies.",
+    "segmentCount": 1,
+    "output": "Совещание начинается с 09:RTEIN V1TOkEN.",
+    "error": null,
+    "raw": [
+      {
+        "input": "The meeting starts at RTEINV0TOKEN:RTEINV1TOKEN. Bring RTEINV2TOKEN copies.",
+        "result": [
+          {
+            "translation_text": "Совещание начинается с RTEINV0TOKEN:RTEIN V1TOkEN."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "dir": "en-ru",
+    "version": "after",
+    "source": "The meeting starts at 09:15. Bring 3 copies.",
+    "segmentCount": 2,
+    "output": "Заседание начинается в 09:15. Принесите копии 3.",
+    "error": null,
+    "raw": [
+      {
+        "input": "The meeting starts at RTEINV0TOKEN.",
+        "options": {
+          "max_new_tokens": 64,
+          "num_beams": 4,
+          "num_return_sequences": 3,
+          "early_stopping": true,
+          "no_repeat_ngram_size": 3,
+          "length_penalty": 1,
+          "do_sample": false
+        },
+        "result": [
+          {
+            "translation_text": "Заседание начинается в РТЕЙНВ0ТОКЕН."
+          }
+        ]
+      },
+      {
+        "input": "Bring RTEINV0TOKEN copies.",
+        "options": {
+          "max_new_tokens": 64,
+          "num_beams": 4,
+          "num_return_sequences": 3,
+          "early_stopping": true,
+          "no_repeat_ngram_size": 3,
+          "length_penalty": 1,
+          "do_sample": false
+        },
+        "result": [
+          {
+            "translation_text": "Принесите копии RTEINV0TOKEN."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "dir": "en-ru",
+    "version": "before",
+    "source": "Send the report to mail@example.com. The code is 42.",
+    "segmentCount": 1,
+    "output": "Отправьте отчет в mail@example.com.",
+    "error": null,
+    "raw": [
+      {
+        "input": "Send the report to RTEINV0TOKEN. The code is RTEINV1TOKEN.",
+        "result": [
+          {
+            "translation_text": "Отправьте отчет в RTEINV0TOKEN."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "dir": "en-ru",
+    "version": "after",
+    "source": "Send the report to mail@example.com. The code is 42.",
+    "segmentCount": 2,
+    "output": "Отправьте отчет в mail@example.com. Код - 42.",
+    "error": null,
+    "raw": [
+      {
+        "input": "Send the report to RTEINV0TOKEN.",
+        "options": {
+          "max_new_tokens": 65,
+          "num_beams": 4,
+          "num_return_sequences": 3,
+          "early_stopping": true,
+          "no_repeat_ngram_size": 3,
+          "length_penalty": 1,
+          "do_sample": false
+        },
+        "result": [
+          {
+            "translation_text": "Отправьте отчет в РТЕЙНВ0ТОКЕН."
+          }
+        ]
+      },
+      {
+        "input": "The code is RTEINV0TOKEN.",
+        "options": {
+          "max_new_tokens": 64,
+          "num_beams": 4,
+          "num_return_sequences": 3,
+          "early_stopping": true,
+          "no_repeat_ngram_size": 3,
+          "length_penalty": 1,
+          "do_sample": false
+        },
+        "result": [
+          {
+            "translation_text": "Код - RTEINV0TOKEN."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "dir": "ru-en",
+    "version": "before",
+    "source": "Сегодня хорошая погода. Мы идём в парк.",
+    "segmentCount": 1,
+    "output": "We're going to the park.",
+    "error": null,
+    "raw": [
+      {
+        "input": "Сегодня хорошая погода. Мы идём в парк.",
+        "result": [
+          {
+            "translation_text": "We're going to the park."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "dir": "ru-en",
+    "version": "after",
+    "source": "Сегодня хорошая погода. Мы идём в парк.",
+    "segmentCount": 2,
+    "output": "It's good weather today. We're going to the park.",
+    "error": null,
+    "raw": [
+      {
+        "input": "Сегодня хорошая погода.",
+        "options": {
+          "max_new_tokens": 64,
+          "num_beams": 4,
+          "num_return_sequences": 3,
+          "early_stopping": true,
+          "no_repeat_ngram_size": 3,
+          "length_penalty": 1,
+          "do_sample": false
+        },
+        "result": [
+          {
+            "translation_text": "It's good weather today."
+          }
+        ]
+      },
+      {
+        "input": "Мы идём в парк.",
+        "options": {
+          "max_new_tokens": 64,
+          "num_beams": 4,
+          "num_return_sequences": 3,
+          "early_stopping": true,
+          "no_repeat_ngram_size": 3,
+          "length_penalty": 1,
+          "do_sample": false
+        },
+        "result": [
+          {
+            "translation_text": "We're going to the park."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "dir": "ru-en",
+    "version": "before",
+    "source": "Встреча начинается в 09:15. Принесите 3 копии.",
+    "segmentCount": 1,
+    "output": "The meeting begins at 09:2/EINV1toKen. Please bring copies of the RTEING2toKIN.",
+    "error": null,
+    "raw": [
+      {
+        "input": "Встреча начинается в RTEINV0TOKEN:RTEINV1TOKEN. Принесите RTEINV2TOKEN копии.",
+        "result": [
+          {
+            "translation_text": "The meeting begins at RTEINV0toKEN:2/EINV1toKen. Please bring copies of the RTEING2toKIN."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "dir": "ru-en",
+    "version": "after",
+    "source": "Встреча начинается в 09:15. Принесите 3 копии.",
+    "segmentCount": 2,
+    "output": null,
+    "error": "Ни один вариант не прошёл проверку защищённых значений и непустого результата. Перевод не принят.",
+    "raw": [
+      {
+        "input": "Встреча начинается в RTEINV0TOKEN.",
+        "options": {
+          "max_new_tokens": 64,
+          "num_beams": 4,
+          "num_return_sequences": 3,
+          "early_stopping": true,
+          "no_repeat_ngram_size": 3,
+          "length_penalty": 1,
+          "do_sample": false
+        },
+        "result": [
+          {
+            "translation_text": "The meeting begins at RTEINV0*KEN."
+          }
+        ]
+      },
+      {
+        "input": "Встреча начинается в 09:15.",
+        "options": {
+          "max_new_tokens": 64,
+          "num_beams": 2,
+          "num_return_sequences": 1,
+          "early_stopping": true,
+          "do_sample": false
+        },
+        "result": [
+          {
+            "translation_text": "The meeting starts at 0915."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "dir": "ru-en",
+    "version": "before",
+    "source": "Отправьте отчёт на mail@example.com. Код 42.",
+    "segmentCount": 1,
+    "output": "Send the report to mail@example.com.",
+    "error": null,
+    "raw": [
+      {
+        "input": "Отправьте отчёт на RTEINV0TOKEN. Код RTEINV1TOKEN.",
+        "result": [
+          {
+            "translation_text": "Send the report to RTEINV0toKEN."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "dir": "ru-en",
+    "version": "after",
+    "source": "Отправьте отчёт на mail@example.com. Код 42.",
+    "segmentCount": 2,
+    "output": "Send the report to mail@example.com. Code 42.",
+    "error": null,
+    "raw": [
+      {
+        "input": "Отправьте отчёт на RTEINV0TOKEN.",
+        "options": {
+          "max_new_tokens": 65,
+          "num_beams": 4,
+          "num_return_sequences": 3,
+          "early_stopping": true,
+          "no_repeat_ngram_size": 3,
+          "length_penalty": 1,
+          "do_sample": false
+        },
+        "result": [
+          {
+            "translation_text": "Send the report to RTEINV0toKEN."
+          }
+        ]
+      },
+      {
+        "input": "Код RTEINV0TOKEN.",
+        "options": {
+          "max_new_tokens": 64,
+          "num_beams": 4,
+          "num_return_sequences": 3,
+          "early_stopping": true,
+          "no_repeat_ngram_size": 3,
+          "length_penalty": 1,
+          "do_sample": false
+        },
+        "result": [
+          {
+            "translation_text": "RTEINV0°KEN code."
+          }
+        ]
+      },
+      {
+        "input": "Код 42.",
+        "options": {
+          "max_new_tokens": 64,
+          "num_beams": 2,
+          "num_return_sequences": 1,
+          "early_stopping": true,
+          "do_sample": false
+        },
+        "result": [
+          {
+            "translation_text": "Code 42."
+          }
+        ]
+      }
+    ]
+  }
+]
