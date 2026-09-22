@@ -187,13 +187,13 @@ export function restoreInvariants(text = '', placeholders = []) {
 function protectedTokenPattern(placeholder) {
   const id = escapeRegExp(placeholder.match(/\d+/u)?.[0] || '');
   const gap = '[-_\\s]*';
-  const prefix = '(?:RTE|РТЕ|РТЭ)';
+  const prefix = '(?:RTE|РТЕ|РТЭ|РТИ)';
   const invariant = placeholder.startsWith('RTEINV') ? `${gap}(?:INV|ИНВ|ЙНВ)` : '';
-  return new RegExp(`${prefix}${invariant}${gap}${id}${gap}(?:TOKEN|ТОКЕН)(?![\\p{L}\\p{N}_])`, 'giu');
+  return new RegExp(`${prefix}${invariant}${gap}${id}${gap}(?:TOKEN|ТОКЕН|ТОКИН)(?![\\p{L}\\p{N}_])`, 'giu');
 }
 
 export function hasProtectedToken(text = '') {
-  return /(?:RTE|РТЕ|РТЭ)[-_\s]*(?:(?:I[-_\s]*N[-_\s]*V|[ИЙ][-_\s]*Н[-_\s]*В)[-_\s]*)?\d/iu.test(String(text));
+  return /(?:RTE|РТЕ|РТЭ|РТИ)[-_\s]*(?:(?:I[-_\s]*N[-_\s]*V|[ИЙ][-_\s]*Н[-_\s]*В)[-_\s]*)?\d/iu.test(String(text));
 }
 
 // Check whole terms, longest first: one output span cannot satisfy two terms.

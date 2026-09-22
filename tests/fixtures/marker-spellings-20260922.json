@@ -1,0 +1,460 @@
+[
+  {
+    "source": "Coherence and resonance.",
+    "version": "before",
+    "output": null,
+    "error": "Ни один вариант не прошёл проверку защищённых значений и непустого результата. Перевод не принят.",
+    "raw": [
+      {
+        "input": "RTE0TOKEN and RTE1TOKEN.",
+        "options": {
+          "max_new_tokens": 64,
+          "num_beams": 2,
+          "num_return_sequences": 1,
+          "early_stopping": true,
+          "no_repeat_ngram_size": 3,
+          "length_penalty": 1,
+          "do_sample": false
+        },
+        "result": [
+          {
+            "translation_text": "РТИ0ТОКЕН и РТЕ1ТОКИН."
+          }
+        ]
+      },
+      {
+        "input": "Coherence and resonance.",
+        "options": {
+          "max_new_tokens": 64,
+          "num_beams": 2,
+          "num_return_sequences": 1,
+          "early_stopping": true,
+          "do_sample": false
+        },
+        "result": [
+          {
+            "translation_text": "Согласованность и резонанс."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "source": "Coherence and resonance.",
+    "version": "after",
+    "output": [
+      "Когерентность и резонанс."
+    ],
+    "error": null,
+    "raw": [
+      {
+        "input": "RTE0TOKEN and RTE1TOKEN.",
+        "options": {
+          "max_new_tokens": 64,
+          "num_beams": 2,
+          "num_return_sequences": 1,
+          "early_stopping": true,
+          "no_repeat_ngram_size": 3,
+          "length_penalty": 1,
+          "do_sample": false
+        },
+        "result": [
+          {
+            "translation_text": "РТИ0ТОКЕН и РТЕ1ТОКИН."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "source": "Coherence of the field.",
+    "version": "before",
+    "output": null,
+    "error": "Ни один вариант не прошёл проверку защищённых значений и непустого результата. Перевод не принят.",
+    "raw": [
+      {
+        "input": "RTE0TOKEN of the RTE1TOKEN.",
+        "options": {
+          "max_new_tokens": 64,
+          "num_beams": 2,
+          "num_return_sequences": 1,
+          "early_stopping": true,
+          "no_repeat_ngram_size": 3,
+          "length_penalty": 1,
+          "do_sample": false
+        },
+        "result": [
+          {
+            "translation_text": "РТИ0ТОКЕН РТЕТОКЕНА."
+          }
+        ]
+      },
+      {
+        "input": "Coherence of the field.",
+        "options": {
+          "max_new_tokens": 64,
+          "num_beams": 2,
+          "num_return_sequences": 1,
+          "early_stopping": true,
+          "do_sample": false
+        },
+        "result": [
+          {
+            "translation_text": "Согласованность действий на местах."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "source": "Coherence of the field.",
+    "version": "after",
+    "output": null,
+    "error": "Ни один вариант не прошёл проверку защищённых значений и непустого результата. Перевод не принят.",
+    "raw": [
+      {
+        "input": "RTE0TOKEN of the RTE1TOKEN.",
+        "options": {
+          "max_new_tokens": 64,
+          "num_beams": 2,
+          "num_return_sequences": 1,
+          "early_stopping": true,
+          "no_repeat_ngram_size": 3,
+          "length_penalty": 1,
+          "do_sample": false
+        },
+        "result": [
+          {
+            "translation_text": "РТИ0ТОКЕН РТЕТОКЕНА."
+          }
+        ]
+      },
+      {
+        "input": "Coherence of the field.",
+        "options": {
+          "max_new_tokens": 64,
+          "num_beams": 2,
+          "num_return_sequences": 1,
+          "early_stopping": true,
+          "do_sample": false
+        },
+        "result": [
+          {
+            "translation_text": "Согласованность действий на местах."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "source": "The source and the subject.",
+    "version": "before",
+    "output": null,
+    "error": "Ни один вариант не прошёл проверку защищённых значений и непустого результата. Перевод не принят.",
+    "raw": [
+      {
+        "input": "The RTE1TOKEN and the RTE0TOKEN.",
+        "options": {
+          "max_new_tokens": 64,
+          "num_beams": 2,
+          "num_return_sequences": 1,
+          "early_stopping": true,
+          "no_repeat_ngram_size": 3,
+          "length_penalty": 1,
+          "do_sample": false
+        },
+        "result": [
+          {
+            "translation_text": "РТЕ1ТОКЕН и РТЕ0ТОКЛЕН."
+          }
+        ]
+      },
+      {
+        "input": "The source and the subject.",
+        "options": {
+          "max_new_tokens": 64,
+          "num_beams": 2,
+          "num_return_sequences": 1,
+          "early_stopping": true,
+          "do_sample": false
+        },
+        "result": [
+          {
+            "translation_text": "Источник и объект."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "source": "The source and the subject.",
+    "version": "after",
+    "output": null,
+    "error": "Ни один вариант не прошёл проверку защищённых значений и непустого результата. Перевод не принят.",
+    "raw": [
+      {
+        "input": "The RTE1TOKEN and the RTE0TOKEN.",
+        "options": {
+          "max_new_tokens": 64,
+          "num_beams": 2,
+          "num_return_sequences": 1,
+          "early_stopping": true,
+          "no_repeat_ngram_size": 3,
+          "length_penalty": 1,
+          "do_sample": false
+        },
+        "result": [
+          {
+            "translation_text": "РТЕ1ТОКЕН и РТЕ0ТОКЛЕН."
+          }
+        ]
+      },
+      {
+        "input": "The source and the subject.",
+        "options": {
+          "max_new_tokens": 64,
+          "num_beams": 2,
+          "num_return_sequences": 1,
+          "early_stopping": true,
+          "do_sample": false
+        },
+        "result": [
+          {
+            "translation_text": "Источник и объект."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "source": "Form and measure.",
+    "version": "before",
+    "output": [
+      "Форма и мера."
+    ],
+    "error": null,
+    "raw": [
+      {
+        "input": "RTE1TOKEN and RTE0TOKEN.",
+        "options": {
+          "max_new_tokens": 64,
+          "num_beams": 2,
+          "num_return_sequences": 1,
+          "early_stopping": true,
+          "no_repeat_ngram_size": 3,
+          "length_penalty": 1,
+          "do_sample": false
+        },
+        "result": [
+          {
+            "translation_text": "РТЕ1ТОКЕН и РТОТОКИН."
+          }
+        ]
+      },
+      {
+        "input": "Form and measure.",
+        "options": {
+          "max_new_tokens": 64,
+          "num_beams": 2,
+          "num_return_sequences": 1,
+          "early_stopping": true,
+          "do_sample": false
+        },
+        "result": [
+          {
+            "translation_text": "Форма и мера."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "source": "Form and measure.",
+    "version": "after",
+    "output": [
+      "Форма и мера."
+    ],
+    "error": null,
+    "raw": [
+      {
+        "input": "RTE1TOKEN and RTE0TOKEN.",
+        "options": {
+          "max_new_tokens": 64,
+          "num_beams": 2,
+          "num_return_sequences": 1,
+          "early_stopping": true,
+          "no_repeat_ngram_size": 3,
+          "length_penalty": 1,
+          "do_sample": false
+        },
+        "result": [
+          {
+            "translation_text": "РТЕ1ТОКЕН и РТОТОКИН."
+          }
+        ]
+      },
+      {
+        "input": "Form and measure.",
+        "options": {
+          "max_new_tokens": 64,
+          "num_beams": 2,
+          "num_return_sequences": 1,
+          "early_stopping": true,
+          "do_sample": false
+        },
+        "result": [
+          {
+            "translation_text": "Форма и мера."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "source": "Coherence at 09:15.",
+    "version": "before",
+    "output": null,
+    "error": "Ни один вариант не прошёл проверку защищённых значений и непустого результата. Перевод не принят.",
+    "raw": [
+      {
+        "input": "RTE0TOKEN at RTEINV0TOKEN.",
+        "options": {
+          "max_new_tokens": 64,
+          "num_beams": 2,
+          "num_return_sequences": 1,
+          "early_stopping": true,
+          "no_repeat_ngram_size": 3,
+          "length_penalty": 1,
+          "do_sample": false
+        },
+        "result": [
+          {
+            "translation_text": "РТИ0ТОКЕН в РТЕЙНВ0ТОкене."
+          }
+        ]
+      },
+      {
+        "input": "Coherence at 09:15.",
+        "options": {
+          "max_new_tokens": 64,
+          "num_beams": 2,
+          "num_return_sequences": 1,
+          "early_stopping": true,
+          "do_sample": false
+        },
+        "result": [
+          {
+            "translation_text": "Согласованность в 09:15."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "source": "Coherence at 09:15.",
+    "version": "after",
+    "output": null,
+    "error": "Ни один вариант не прошёл проверку защищённых значений и непустого результата. Перевод не принят.",
+    "raw": [
+      {
+        "input": "RTE0TOKEN at RTEINV0TOKEN.",
+        "options": {
+          "max_new_tokens": 64,
+          "num_beams": 2,
+          "num_return_sequences": 1,
+          "early_stopping": true,
+          "no_repeat_ngram_size": 3,
+          "length_penalty": 1,
+          "do_sample": false
+        },
+        "result": [
+          {
+            "translation_text": "РТИ0ТОКЕН в РТЕЙНВ0ТОкене."
+          }
+        ]
+      },
+      {
+        "input": "Coherence at 09:15.",
+        "options": {
+          "max_new_tokens": 64,
+          "num_beams": 2,
+          "num_return_sequences": 1,
+          "early_stopping": true,
+          "do_sample": false
+        },
+        "result": [
+          {
+            "translation_text": "Согласованность в 09:15."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "source": "Coherence and coherence.",
+    "version": "before",
+    "output": null,
+    "error": "Ни один вариант не прошёл проверку защищённых значений и непустого результата. Перевод не принят.",
+    "raw": [
+      {
+        "input": "RTE0TOKEN and RTE1TOKEN.",
+        "options": {
+          "max_new_tokens": 64,
+          "num_beams": 2,
+          "num_return_sequences": 1,
+          "early_stopping": true,
+          "no_repeat_ngram_size": 3,
+          "length_penalty": 1,
+          "do_sample": false
+        },
+        "result": [
+          {
+            "translation_text": "РТИ0ТОКЕН и РТЕ1ТОКИН."
+          }
+        ]
+      },
+      {
+        "input": "Coherence and coherence.",
+        "options": {
+          "max_new_tokens": 64,
+          "num_beams": 2,
+          "num_return_sequences": 1,
+          "early_stopping": true,
+          "do_sample": false
+        },
+        "result": [
+          {
+            "translation_text": "Согласованность и согласованность."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "source": "Coherence and coherence.",
+    "version": "after",
+    "output": [
+      "Когерентность и когерентность."
+    ],
+    "error": null,
+    "raw": [
+      {
+        "input": "RTE0TOKEN and RTE1TOKEN.",
+        "options": {
+          "max_new_tokens": 64,
+          "num_beams": 2,
+          "num_return_sequences": 1,
+          "early_stopping": true,
+          "no_repeat_ngram_size": 3,
+          "length_penalty": 1,
+          "do_sample": false
+        },
+        "result": [
+          {
+            "translation_text": "РТИ0ТОКЕН и РТЕ1ТОКИН."
+          }
+        ]
+      }
+    ]
+  }
+]
