@@ -60,8 +60,16 @@ test('document assembly rejects missing or empty segment and untranslated marker
 });
 
 test('reserved markers are detected in user input or imported memory', () => {
-  for (const value of ['RTE0TOKEN', 'РТЕЙНВ0ТОКЕН', 'rte inv 2 token', 'RTEINV0*KEN', 'RTEIN V1TOkEN']) assert.equal(hasProtectedToken(value), true);
+  for (const value of ['RTE0TOKEN', 'РТЕЙНВ0ТОКЕН', 'rte inv 2 token', 'RTEINV0*KEN', 'RTEIN V1TOkEN', 'РТИ0ТОКЕН', 'РТИ1*КИН']) assert.equal(hasProtectedToken(value), true);
   assert.equal(hasProtectedToken('Встреча в 10:30.'), false);
+});
+
+test('observed Cyrillic spellings restore only the exact glossary IDs', () => {
+  const glossary = maskGlossary('Coherence and resonance.', DEFAULT_GLOSSARY).placeholders;
+  assert.equal(restoreProtectedTranslation('РТИ0ТОКЕН и РТЕ1ТОКИН.', glossary), 'Когерентность и резонанс.');
+  for (const target of ['РТИ0ТОКЕН и РТЕТОКЕНА.', 'РТИ0ТОКЕН и РТЕ10ТОКИН.', 'РТИ0ТОКЕН РТИ0ТОКЕН РТЕ1ТОКИН.', 'РТИ0ТОКЕН и РТЕ1ТОКИН РТИ99*КИН']) {
+    assert.throws(() => restoreProtectedTranslation(target, glossary), undefined, target);
+  }
 });
 
 test('literal retry requires exact time, count and no new numeric values', () => {
@@ -175,6 +183,24 @@ for (const record of glossaryObserved.filter(item => item.version === 'after')) 
       assert.deepEqual(options, call.options);
       return call.result;
     }, { direction: record.direction, glossary: DEFAULT_GLOSSARY, candidateCount: 1 });
+    const recovered = record.direction === 'en-ru' && record.source === 'Coherence and resonance.';
+    if (recovered) assert.deepEqual(await run(), ['Когерентность и резонанс.']);
+    else if (record.error) await assert.rejects(run, /Ни один вариант/u);
+    else assert.deepEqual(await run(), record.output);
+    assert.equal(index, recovered ? 1 : record.raw.length);
+  });
+}
+
+const spellingsObserved = JSON.parse(await readFile(new URL('./fixtures/marker-spellings-20260922.json', import.meta.url), 'utf8'));
+for (const record of spellingsObserved.filter(item => item.version === 'after')) {
+  test(`replay observed EN→RU marker spellings: ${record.source}`, async () => {
+    let index = 0;
+    const run = () => generateSegmentCandidates(record.source, async (input, options) => {
+      const call = record.raw[index++];
+      assert.equal(input, call.input);
+      assert.deepEqual(options, call.options);
+      return call.result;
+    }, { direction: 'en-ru', glossary: DEFAULT_GLOSSARY });
     if (record.error) await assert.rejects(run, /Ни один вариант/u);
     else assert.deepEqual(await run(), record.output);
     assert.equal(index, record.raw.length);
