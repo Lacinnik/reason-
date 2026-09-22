@@ -1,0 +1,341 @@
+[
+  {
+    "direction": "ru-en",
+    "version": "before",
+    "source": "Когерентность поля.",
+    "output": null,
+    "error": "Ни один вариант не прошёл проверку защищённых значений и непустого результата. Перевод не принят.",
+    "raw": [
+      {
+        "input": "RTE0TOKEN поля.",
+        "options": {
+          "max_new_tokens": 64,
+          "num_beams": 2,
+          "num_return_sequences": 1,
+          "early_stopping": true,
+          "no_repeat_ngram_size": 3,
+          "length_penalty": 1,
+          "do_sample": false
+        },
+        "result": [
+          {
+            "translation_text": "RTE0 NorthKEN fields."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "direction": "ru-en",
+    "version": "after",
+    "source": "Когерентность поля.",
+    "output": [
+      "Coherence of the field."
+    ],
+    "error": null,
+    "raw": [
+      {
+        "input": "RTE0TOKEN поля.",
+        "options": {
+          "max_new_tokens": 64,
+          "num_beams": 2,
+          "num_return_sequences": 1,
+          "early_stopping": true,
+          "no_repeat_ngram_size": 3,
+          "length_penalty": 1,
+          "do_sample": false
+        },
+        "result": [
+          {
+            "translation_text": "RTE0 NorthKEN fields."
+          }
+        ]
+      },
+      {
+        "input": "Когерентность поля.",
+        "options": {
+          "max_new_tokens": 64,
+          "num_beams": 2,
+          "num_return_sequences": 1,
+          "early_stopping": true,
+          "do_sample": false
+        },
+        "result": [
+          {
+            "translation_text": "Coherence of the field."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "direction": "ru-en",
+    "version": "before",
+    "source": "Когерентность и резонанс.",
+    "output": null,
+    "error": "Ни один вариант не прошёл проверку защищённых значений и непустого результата. Перевод не принят.",
+    "raw": [
+      {
+        "input": "RTE0TOKEN и RTE1TOKEN.",
+        "options": {
+          "max_new_tokens": 64,
+          "num_beams": 2,
+          "num_return_sequences": 1,
+          "early_stopping": true,
+          "no_repeat_ngram_size": 3,
+          "length_penalty": 1,
+          "do_sample": false
+        },
+        "result": [
+          {
+            "translation_text": "RTE0 NorthKEN and RTE1 NorthKen."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "direction": "ru-en",
+    "version": "after",
+    "source": "Когерентность и резонанс.",
+    "output": [
+      "Coherence and resonance."
+    ],
+    "error": null,
+    "raw": [
+      {
+        "input": "RTE0TOKEN и RTE1TOKEN.",
+        "options": {
+          "max_new_tokens": 64,
+          "num_beams": 2,
+          "num_return_sequences": 1,
+          "early_stopping": true,
+          "no_repeat_ngram_size": 3,
+          "length_penalty": 1,
+          "do_sample": false
+        },
+        "result": [
+          {
+            "translation_text": "RTE0 NorthKEN and RTE1 NorthKen."
+          }
+        ]
+      },
+      {
+        "input": "Когерентность и резонанс.",
+        "options": {
+          "max_new_tokens": 64,
+          "num_beams": 2,
+          "num_return_sequences": 1,
+          "early_stopping": true,
+          "do_sample": false
+        },
+        "result": [
+          {
+            "translation_text": "Coherence and resonance."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "direction": "ru-en",
+    "version": "before",
+    "source": "Когерентность в 09:15.",
+    "output": null,
+    "error": "Ни один вариант не прошёл проверку защищённых значений и непустого результата. Перевод не принят.",
+    "raw": [
+      {
+        "input": "RTE0TOKEN в RTEINV0TOKEN.",
+        "options": {
+          "max_new_tokens": 64,
+          "num_beams": 2,
+          "num_return_sequences": 1,
+          "early_stopping": true,
+          "no_repeat_ngram_size": 3,
+          "length_penalty": 1,
+          "do_sample": false
+        },
+        "result": [
+          {
+            "translation_text": "RTE0TOKEN in RTEINV0TOKIEN."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "direction": "ru-en",
+    "version": "after",
+    "source": "Когерентность в 09:15.",
+    "output": null,
+    "error": "Ни один вариант не прошёл проверку защищённых значений и непустого результата. Перевод не принят.",
+    "raw": [
+      {
+        "input": "RTE0TOKEN в RTEINV0TOKEN.",
+        "options": {
+          "max_new_tokens": 64,
+          "num_beams": 2,
+          "num_return_sequences": 1,
+          "early_stopping": true,
+          "no_repeat_ngram_size": 3,
+          "length_penalty": 1,
+          "do_sample": false
+        },
+        "result": [
+          {
+            "translation_text": "RTE0TOKEN in RTEINV0TOKIEN."
+          }
+        ]
+      },
+      {
+        "input": "Когерентность в 09:15.",
+        "options": {
+          "max_new_tokens": 64,
+          "num_beams": 2,
+          "num_return_sequences": 1,
+          "early_stopping": true,
+          "do_sample": false
+        },
+        "result": [
+          {
+            "translation_text": "Coherence at 0915."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "direction": "en-ru",
+    "version": "before",
+    "source": "Coherence of the field.",
+    "output": null,
+    "error": "Ни один вариант не прошёл проверку защищённых значений и непустого результата. Перевод не принят.",
+    "raw": [
+      {
+        "input": "RTE0TOKEN of the RTE1TOKEN.",
+        "options": {
+          "max_new_tokens": 64,
+          "num_beams": 2,
+          "num_return_sequences": 1,
+          "early_stopping": true,
+          "no_repeat_ngram_size": 3,
+          "length_penalty": 1,
+          "do_sample": false
+        },
+        "result": [
+          {
+            "translation_text": "РТИ0ТОКЕН РТЕТОКЕНА."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "direction": "en-ru",
+    "version": "after",
+    "source": "Coherence of the field.",
+    "output": null,
+    "error": "Ни один вариант не прошёл проверку защищённых значений и непустого результата. Перевод не принят.",
+    "raw": [
+      {
+        "input": "RTE0TOKEN of the RTE1TOKEN.",
+        "options": {
+          "max_new_tokens": 64,
+          "num_beams": 2,
+          "num_return_sequences": 1,
+          "early_stopping": true,
+          "no_repeat_ngram_size": 3,
+          "length_penalty": 1,
+          "do_sample": false
+        },
+        "result": [
+          {
+            "translation_text": "РТИ0ТОКЕН РТЕТОКЕНА."
+          }
+        ]
+      },
+      {
+        "input": "Coherence of the field.",
+        "options": {
+          "max_new_tokens": 64,
+          "num_beams": 2,
+          "num_return_sequences": 1,
+          "early_stopping": true,
+          "do_sample": false
+        },
+        "result": [
+          {
+            "translation_text": "Согласованность действий на местах."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "direction": "en-ru",
+    "version": "before",
+    "source": "Coherence and resonance.",
+    "output": null,
+    "error": "Ни один вариант не прошёл проверку защищённых значений и непустого результата. Перевод не принят.",
+    "raw": [
+      {
+        "input": "RTE0TOKEN and RTE1TOKEN.",
+        "options": {
+          "max_new_tokens": 64,
+          "num_beams": 2,
+          "num_return_sequences": 1,
+          "early_stopping": true,
+          "no_repeat_ngram_size": 3,
+          "length_penalty": 1,
+          "do_sample": false
+        },
+        "result": [
+          {
+            "translation_text": "РТИ0ТОКЕН и РТЕ1ТОКИН."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "direction": "en-ru",
+    "version": "after",
+    "source": "Coherence and resonance.",
+    "output": null,
+    "error": "Ни один вариант не прошёл проверку защищённых значений и непустого результата. Перевод не принят.",
+    "raw": [
+      {
+        "input": "RTE0TOKEN and RTE1TOKEN.",
+        "options": {
+          "max_new_tokens": 64,
+          "num_beams": 2,
+          "num_return_sequences": 1,
+          "early_stopping": true,
+          "no_repeat_ngram_size": 3,
+          "length_penalty": 1,
+          "do_sample": false
+        },
+        "result": [
+          {
+            "translation_text": "РТИ0ТОКЕН и РТЕ1ТОКИН."
+          }
+        ]
+      },
+      {
+        "input": "Coherence and resonance.",
+        "options": {
+          "max_new_tokens": 64,
+          "num_beams": 2,
+          "num_return_sequences": 1,
+          "early_stopping": true,
+          "do_sample": false
+        },
+        "result": [
+          {
+            "translation_text": "Согласованность и резонанс."
+          }
+        ]
+      }
+    ]
+  }
+]

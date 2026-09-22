@@ -196,12 +196,25 @@ export function hasProtectedToken(text = '') {
   return /(?:RTE|РТЕ|РТЭ)[-_\s]*(?:(?:I[-_\s]*N[-_\s]*V|[ИЙ][-_\s]*Н[-_\s]*В)[-_\s]*)?\d/iu.test(String(text));
 }
 
-// Literal retry is allowed only without protected glossary entries in the caller.
-export function validateLiteralTranslation(source, target) {
+// Check whole terms, longest first: one output span cannot satisfy two terms.
+function literalGlossaryPreserved(target, placeholders) {
+  const expected = multiset(placeholders.map(item => item.target.trim().toLowerCase()));
+  if (!expected.size) return true;
+  if (expected.has('')) return false;
+  const terms = [...expected.keys()].sort((a, b) => b.length - a.length).map(escapeRegExp);
+  const pattern = new RegExp(`(^|[^\\p{L}\\p{N}_])(${terms.join('|')})(?=$|[^\\p{L}\\p{N}_])`, 'giu');
+  const actual = multiset([...String(target).matchAll(pattern)].map(match => match[2].toLowerCase()));
+  return expected.size === actual.size && [...expected].every(([term, count]) => actual.get(term) === count);
+}
+
+// An unmasked retry is accepted only with exact values and approved whole terms.
+// Term case may change with sentence position; inflections/synonyms are not guessed.
+export function validateLiteralTranslation(source, target, glossaryPlaceholders = []) {
   if (!String(target || '').trim() || hasProtectedToken(target)) return false;
   const expected = multiset(maskInvariants(source).placeholders.map(item => item.value));
   const actual = multiset(maskInvariants(target).placeholders.map(item => item.value));
-  return expected.size === actual.size && [...expected].every(([value, count]) => actual.get(value) === count);
+  return expected.size === actual.size && [...expected].every(([value, count]) => actual.get(value) === count)
+    && literalGlossaryPreserved(target, glossaryPlaceholders);
 }
 
 /** A missing, repeated or unknown marker invalidates this entire candidate. */
@@ -462,14 +475,14 @@ export async function generateSegmentCandidates(segmentText, engine, { candidate
       console.warn('Candidate rejected by protected-value gate:', error.message);
     }
   }
-  if (!restored.length && glossaryProtected.placeholders.length === 0) {
-    // One bounded retry without synthetic markers. Accept only exact protected values.
+  if (!restored.length) {
+    // One bounded retry without markers; both values and glossary must survive.
     const literal = await engine(segmentText, {
       max_new_tokens: maxNewTokens, num_beams: 2, num_return_sequences: 1,
       early_stopping: true, do_sample: false,
     });
     for (const text of normalizePipelineOutput(literal)) {
-      if (validateLiteralTranslation(segmentText, text) && !looksDegenerateTranslation(segmentText, text)) restored.push(text);
+      if (validateLiteralTranslation(segmentText, text, glossaryProtected.placeholders) && !looksDegenerateTranslation(segmentText, text)) restored.push(text);
     }
   }
   if (!restored.length) {
