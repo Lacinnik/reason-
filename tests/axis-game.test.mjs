@@ -75,3 +75,41 @@ test('AXIS explicitly distinguishes game scores from psychological measurement',
   assert.match(html, /не психологическая диагностика/);
   assert.match(html, /Внешний возврат Q не измерялся/);
 });
+
+test('AXIS confirms clipboard success only after the write resolves', async () => {
+  const h=harness();h.finish();let copied,complete;
+  h.context.navigator.clipboard={writeText(text){copied=text;return new Promise(resolve=>{complete=resolve;});}};
+  const pending=h.element('#share').onclick();
+  assert.equal(h.element('#share').disabled,true);
+  assert.equal(h.element('#shareStatus').textContent,'');
+  complete();await pending;
+  assert.equal(h.element('#share').disabled,false);
+  assert.match(h.element('#shareStatus').textContent,/скопирован/);
+  assert.match(copied,new RegExp('Игровой балл: '+h.context.fieldState.score+'/100'));
+  assert.match(copied,/Q не измерялся/);
+});
+test('AXIS exposes the exact result for manual copying when share or clipboard fails', async () => {
+  for(const api of [{},{clipboard:{writeText:async()=>{throw Error('denied');}}},{share:async()=>{throw Error('unavailable');}}]){
+    const h=harness();h.finish();Object.assign(h.context.navigator,api);
+    await h.element('#share').onclick();
+    assert.equal(h.element('#shareText').hidden,false);
+    assert.match(h.element('#shareText').value,new RegExp('Игровой балл: '+h.context.fieldState.score+'/100'));
+    assert.match(h.element('#shareStatus').textContent,/не удалась/);
+    assert.equal(h.element('#share').disabled,false);
+    h.element('#again').onclick();
+    assert.equal(h.element('#shareText').hidden,true);
+    assert.equal(h.element('#shareText').value,'');
+  }
+});
+test('AXIS distinguishes cancelled share from successful share without copying automatically', async () => {
+  const h=harness();h.finish();let copies=0;
+  h.context.navigator.clipboard={writeText:async()=>{copies++;}};
+  h.context.navigator.share=async()=>{const error=Error('cancelled');error.name='AbortError';throw error;};
+  await h.element('#share').onclick();
+  assert.match(h.element('#shareStatus').textContent,/отменена/);
+  assert.equal(copies,0);
+  h.context.navigator.share=async()=>{};
+  await h.element('#share').onclick();
+  assert.match(h.element('#shareStatus').textContent,/через системное меню/);
+  assert.equal(copies,0);
+});

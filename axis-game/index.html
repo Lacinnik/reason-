@@ -110,6 +110,8 @@
     <p class="help-note">Игровой результат, не психологическая диагностика. Внешний возврат Q не измерялся.</p>
     <p class="help-note" id="saveStatus" role="status"></p>
     <div class="end-actions"><button class="primary" id="again">НОВЫЙ ПРОХОД</button><button class="secondary" id="share">СОХРАНИТЬ РЕЗУЛЬТАТ</button></div>
+    <p class="help-note" id="shareStatus" role="status"></p>
+    <textarea id="shareText" aria-label="Текст игрового результата для ручного копирования" readonly hidden rows="7" style="width:100%;box-sizing:border-box;padding:12px"></textarea>
   </section>
 </main>
 <div class="toast" id="toast">Результат скопирован</div>
@@ -139,7 +141,7 @@
   function show(id){$$('.screen').forEach(x=>x.classList.toggle('active',x.id===id));if(id!=='help')lastScreen=id}
   function openHelp(intent){helpIntent=intent;$('#closeHelp').textContent=intent==='return'?'ВЕРНУТЬСЯ К УЗЛУ':'НАЧАТЬ ПРОХОД';show('help');$('#help .help-card').scrollTop=0}
   function shuffle(a){return a.map(v=>[Math.random(),v]).sort((a,b)=>a[0]-b[0]).map(v=>v[1])}
-  function newGame(){state={axis:72,measure:64,grad:0,i:0,log:[],deck:shuffle(nodes).slice(0,8)};selectedG=selectedO=null;show('game');render()}
+  function newGame(){$('#shareStatus').textContent='';$('#shareText').value='';$('#shareText').hidden=true;state={axis:72,measure:64,grad:0,i:0,log:[],deck:shuffle(nodes).slice(0,8)};selectedG=selectedO=null;show('game');render()}
   function renderChoices(){
     $('#geometries').innerHTML=G.map(([id,s,n])=>`<button class="choice ${selectedG===id?'selected':''}" data-g="${id}"><i>${s}</i><span>${n}</span></button>`).join('');
     $('#operators').innerHTML=O.map(([id,s,n])=>`<button class="choice ${selectedO===id?'selected':''}" data-o="${id}"><i>${s}</i><span>${n}</span></button>`).join('');
@@ -178,7 +180,26 @@
     }catch(e){$('#saveStatus').textContent='Результат показан, но сохранение рекорда не подтверждено. Доступные прежние данные не удалены.';}
     tone(700,.28)
   }
-  function share(){const txt=`ОСЬ · ТзАрх\nКогерентность: ${state.score}/100\nОсь: ${state.axis} · Мера: ${state.measure} · Градиент: ${state.grad}\nИнвариант усиливается не нажимом, а сообразованием.`;if(navigator.share)navigator.share({title:'ОСЬ · ТзАрх',text:txt}).catch(()=>{});else navigator.clipboard?.writeText(txt).then(()=>toast())}
+  async function share(){
+    if(!state || !Number.isFinite(state.score) || $('#share').disabled)return;
+    const txt=`ОСЬ · ТзАрх\nИгровой балл: ${state.score}/100\nОсь: ${state.axis} · Мера: ${state.measure} · Градиент: ${state.grad}\nВнешний возврат Q не измерялся.\nИнвариант усиливается не нажимом, а сообразованием.`;
+    $('#share').disabled=true;$('#shareStatus').textContent='';$('#shareText').hidden=true;
+    try{
+      if(typeof navigator.share==='function'){
+        await navigator.share({title:'ОСЬ · ТзАрх',text:txt});
+        $('#shareStatus').textContent='Результат передан через системное меню.';
+      }else if(typeof navigator.clipboard?.writeText==='function'){
+        await navigator.clipboard.writeText(txt);toast();
+        $('#shareStatus').textContent='Результат скопирован в буфер обмена.';
+      }else throw new Error('sharing unavailable');
+    }catch(error){
+      if(error?.name==='AbortError')$('#shareStatus').textContent='Отправка отменена. Результат остаётся на экране.';
+      else{
+        $('#shareText').value=txt;$('#shareText').hidden=false;
+        $('#shareStatus').textContent='Автоматическая передача не удалась. Скопируйте текст результата из поля ниже.';
+      }
+    }finally{$('#share').disabled=false;}
+  }
   function toast(){const t=$('#toast');t.classList.add('on');setTimeout(()=>t.classList.remove('on'),1700)}
   $('#start').onclick=()=>openHelp('start');$('#rulesLink').onclick=()=>openHelp('start');$('#gameHelp').onclick=()=>openHelp('return');$('#again').onclick=newGame;$('#resolve').onclick=resolve;$('#next').onclick=()=>{if(!state||state.i>=state.deck.length||state.log.length!==state.i+1)return;if(++state.i>=state.deck.length)finish();else render()};$('#share').onclick=share;
   $('#closeHelp').onclick=()=>helpIntent==='start'?newGame():show(lastScreen);
