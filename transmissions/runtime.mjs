@@ -11,7 +11,13 @@ const KEYWORDS = [
 ];
 
 export function cleanVoices(value) {
-  return [...new Set(String(value || "").split(/[\n,;]+/u).map(item => item.trim()).filter(Boolean))];
+  const seen = new Set();
+  return String(value || "").split(/[\n,;]+/u).map(item => item.trim()).filter(name => {
+    const key = name.normalize("NFC").replace(/\s+/gu, " ").toLocaleLowerCase("ru-RU");
+    if (!key || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 }
 
 export function suggestTransmission(text) {
