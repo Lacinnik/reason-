@@ -9,3 +9,18 @@ test("7 Transmissions publishes exactly seven independent modes", () => { assert
 test("literal suggestion is deterministic and defaults to Resonance", () => { assert.equal(suggestTransmission("Нужно выпустить результат в срок").id,"TX5"); assert.equal(suggestTransmission("Пока неясно").id,"TX3"); });
 test("session records explicit voice gate and never infers consent", () => { const draft={object:"Выпуск нового продукта",tension:"Нужно собрать общий шаг",voices:"Анна\nБорис\nАнна",txId:"TX3",voiceTrace:"Оба голоса предъявили различия",nextStep:"Собрать единый макет",owner:"Анна",window:"завтра",voiceGate:"not-presented"}; const session=buildSession(draft,TRANSMISSIONS,{now:()=>"2026-07-20T00:00:00.000Z",uuid:()=>"tx-test"}); assert.equal(session.schema,SESSION_SCHEMA); assert.deepEqual(cleanVoices(draft.voices),["Анна","Борис"]); assert.equal(session.outcome,"hold"); assert.equal(session.language.tensor.Q,null); assert.equal(session.language.profile,"seven-transmissions"); assert.match(session.boundary,/silence is never treated as consent/); });
 test("release is local-first and self-contained", async()=>{const [html,app,css,sw]=await Promise.all([readFile(new URL("index.html",root),"utf8"),readFile(new URL("app.mjs",root),"utf8"),readFile(new URL("styles.css",root),"utf8"),readFile(new URL("../sw.js",root),"utf8")]);assert.match(html,/7 TRANSMISSIONS · 1\.1 · TZAR-LANGUAGE-001/);assert.doesNotMatch(html,/https?:\/\//);assert.match(app,/persistJournal/);assert.match(app,/session\.language\.layers\.publicStatement/);assert.match(app,/serviceWorker\.register\("\.\.\/sw\.js"\)/);for(const file of ["tzar-language-001.mjs","tzar-language.profiles.json","module/catalog.mjs","transmissions/index.html","transmissions/styles.css","transmissions/app.mjs","transmissions/catalog.mjs","transmissions/runtime.mjs"])assert.match(sw,new RegExp(file.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"),"u"));assert.match(css,/-webkit-appearance:none/);});
+
+test("voice names deduplicate case, spacing and Unicode without rewriting the first label", () => {
+  assert.deepEqual(cleanVoices(" Анна ; анна, АННА\nБорис"), ["Анна","Борис"]);
+  assert.deepEqual(cleanVoices("Анна  Иванова;анна иванова;Йона;И\u0306она"), ["Анна  Иванова","Йона"]);
+  assert.deepEqual(cleanVoices("Анна;Анна-Мария"), ["Анна","Анна-Мария"]);
+});
+test("duplicate spellings cannot satisfy the minimum or inflate the maximum voice count", () => {
+  const draft={object:"Выпуск нового продукта",tension:"Нужно собрать общий шаг",voices:"Анна;анна",txId:"TX3",voiceTrace:"Голоса явно предъявили различия",nextStep:"Собрать единый макет",owner:"Анна",window:"завтра",voiceGate:"presented"};
+  assert.throws(()=>buildSession(draft,TRANSMISSIONS), error=>error.codes.includes("VOICES_INCOMPLETE"));
+  const names=Array.from({length:8},(_,i)=>"Участник "+i);
+  const session=buildSession({...draft,voices:[...names,"участник 0"].join(";")},TRANSMISSIONS);
+  assert.deepEqual(session.voices,names);
+  assert.equal(session.language.tensor.Q,null);
+  assert.throws(()=>buildSession({...draft,voices:[...names,"Девятый"].join(";")},TRANSMISSIONS),error=>error.codes.includes("VOICES_OVERFLOW"));
+});

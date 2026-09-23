@@ -1,6 +1,6 @@
 import { readJournal, persistJournal, downloadJson } from "../local-journal.mjs";
 import { TRANSMISSIONS } from "./catalog.mjs";
-import { buildSession, cleanVoices, suggestTransmission, validateSession } from "./runtime.mjs";
+import { buildSession, cleanVoices, suggestTransmission, validateSession } from "./runtime.mjs?v=transmissions-voices-20260923-r1";
 
 const STORAGE_KEY = "architectonica.reson.transmissions.v1";
 const state = { object:"", tension:"", voices:"", txId:"", voiceTrace:"", nextStep:"", owner:"", window:"", voiceGate:"", session:null, suggestion:null };
