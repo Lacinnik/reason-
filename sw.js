@@ -1,5 +1,5 @@
 const VERSION = '2.0.0';
-const CACHE_REVISION = 'glossary-spellings-20260922-r3';
+const CACHE_REVISION = 'field-revise-20260923-r1';
 const SHELL_CACHE = `rte-shell-${VERSION}-${CACHE_REVISION}`;
 const RUNTIME_CACHE = `rte-runtime-${VERSION}-${CACHE_REVISION}`;
 const PINNED_TRANSFORMERS = 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.7.2';
@@ -21,7 +21,7 @@ const SHELL = [
   './field-check/',
   './field-check/index.html',
   './field-check/styles.css',
-  './field-check/app.js',
+  './field-check/app.js?v=field-revise-20260923-r1',
   './transmissions/',
   './transmissions/index.html',
   './transmissions/styles.css',
