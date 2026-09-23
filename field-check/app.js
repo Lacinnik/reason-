@@ -120,6 +120,12 @@ import { compileTzarLanguage } from "../tzar-language-001.mjs";
     $("#evidence").innerHTML = `<div><span>Слово поля</span><b>${escapeHtml(decision.language.layers.publicStatement)}</b></div><div><span>Сингулярная формула</span><b>${escapeHtml(decision.language.formula)}</b></div><div><span>Связи доверия</span><b>${decision.links_verified ? "предъявлены" : "неполны"}</b></div><div><span>Ворота решения</span><b>${decision.gate}</b></div><div><span>Общий объект</span><b>${escapeHtml(decision.shared_object)}</b></div><div><span>Хранение</span><b>локально</b></div>`;
   }
 
+  function revise() {
+    state.decision = null;
+    $("#storage-error").textContent = "";
+    setStage("field");
+  }
+
   function restart() {
     state.title = ""; state.subjects = []; state.decision = null;
     $("#field-title").value = ""; $("#participants").value = "";
@@ -150,6 +156,7 @@ import { compileTzarLanguage } from "../tzar-language-001.mjs";
   $("#participants").addEventListener("input", validateSetup);
   $("#build").addEventListener("click", buildField);
   $("#evaluate").addEventListener("click", evaluate);
+  $("#revise").addEventListener("click", revise);
   $("#restart").addEventListener("click", restart);
   $("#export").addEventListener("click", exportDecision);
   if ("serviceWorker" in navigator) navigator.serviceWorker.register("../sw.js").catch(() => {});
