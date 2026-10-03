@@ -1,0 +1,39 @@
+{
+  "schema": "lacinnik.ecosystem-status/1.0.0",
+  "repository": "Lacinnik/reason-",
+  "role": "Лаборатория РЕЗОН",
+  "products": [
+    {
+      "id": "rte",
+      "name": "Resonant Translation Engine",
+      "version": "2.0.0",
+      "status": "not-accepted",
+      "detail": "приёмка полноты нейроперевода не пройдена",
+      "url": "https://lacinnik.github.io/reason-/",
+      "source": "ACCEPTANCE_STATUS.md"
+    },
+    {
+      "id": "field-check",
+      "name": "Collective Field Check",
+      "version": "1.0",
+      "status": "stable",
+      "url": "https://lacinnik.github.io/reason-/field-check/",
+      "source": "README.md"
+    },
+    {
+      "id": "transmissions",
+      "name": "7 Передач",
+      "version": "1.0",
+      "status": "stable",
+      "url": "https://lacinnik.github.io/reason-/transmissions/",
+      "source": "README.md"
+    },
+    {
+      "id": "axis-game",
+      "name": "ОСЬ · ТзАрх",
+      "status": "stable",
+      "url": "https://lacinnik.github.io/reason-/axis-game/",
+      "source": "axis-game/ACCEPTANCE.md"
+    }
+  ]
+}
