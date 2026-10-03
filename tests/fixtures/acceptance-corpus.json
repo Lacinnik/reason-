@@ -1,0 +1,18 @@
+{
+  "schema": "rte.acceptance-corpus/1.0.0",
+  "note": "Corpus for re-acceptance conditions 1–4 in ACCEPTANCE_STATUS.md. Automated checks gather evidence; the reviewer decides.",
+  "cases": [
+    { "id": "protocol-0920-en", "dir": "en-ru", "origin": "NEURAL_CHECK_20260920", "text": "The train arrives at 10:30. Please bring two tickets." },
+    { "id": "protocol-0920-ru", "dir": "ru-en", "origin": "NEURAL_CHECK_20260920", "text": "Сегодня хорошая погода. Мы идём в парк." },
+    { "id": "multi-sentence-en", "dir": "en-ru", "text": "The library opens early. Children read in the morning. Adults come after work." },
+    { "id": "multi-sentence-ru", "dir": "ru-en", "text": "Магазин закрыт. Откроется завтра утром. Приходите пораньше." },
+    { "id": "paragraphs-en", "dir": "en-ru", "text": "We arrived late.\n\nThe hotel was quiet. Breakfast starts at 07:45." },
+    { "id": "paragraphs-ru", "dir": "ru-en", "text": "Встреча прошла хорошо.\n\nСледующая встреча будет в 14:00. Не опаздывайте." },
+    { "id": "numbers-en", "dir": "en-ru", "text": "The order contains 12 boxes. Each box weighs 3.5 kilograms." },
+    { "id": "numbers-ru", "dir": "ru-en", "text": "Встреча начинается в 09:15. Принесите 3 копии." },
+    { "id": "url-email-en", "dir": "en-ru", "text": "Read the guide at https://example.org/start. Questions go to help@example.org." },
+    { "id": "url-email-ru", "dir": "ru-en", "text": "Отправьте отчёт на mail@example.com. Инструкция лежит на https://example.org/docs." },
+    { "id": "glossary-en", "dir": "en-ru", "text": "The field keeps its coherence. Resonance appears in the form." },
+    { "id": "glossary-ru", "dir": "ru-en", "text": "Субъект удерживает меру. Источник остаётся открытым." }
+  ]
+}

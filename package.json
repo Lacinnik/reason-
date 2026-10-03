@@ -7,7 +7,8 @@
   "scripts": {
     "test": "node --test tests/*.test.mjs",
     "check": "node --check app.js && node --check engine-core.js && node --check storage.js && node --check sw.js && npm test",
-    "smoke": "node --test tests/static-package.test.mjs"
+    "smoke": "node --test tests/static-package.test.mjs",
+    "acceptance:cpu": "node tools/acceptance-cpu.mjs"
   },
   "engines": {
     "node": ">=20"
