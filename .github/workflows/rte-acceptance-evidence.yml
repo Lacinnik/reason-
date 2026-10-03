@@ -19,6 +19,12 @@ jobs:
         run: npm install --no-save @huggingface/transformers@3.7.2
       - name: Run acceptance corpus
         run: node tools/acceptance-cpu.mjs acceptance-report.json
+      - name: Show report
+        if: always()
+        run: |
+          if [ -f acceptance-report.json ]; then
+            node tools/acceptance-summary.mjs acceptance-report.json | tee -a "$GITHUB_STEP_SUMMARY"
+          fi
       - uses: actions/upload-artifact@v4
         if: always()
         with:

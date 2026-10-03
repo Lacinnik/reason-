@@ -31,3 +31,18 @@ test('acceptance corpus covers both protocol phrases and both directions', () =>
   assert.ok(ids.has('protocol-0920-en') && ids.has('protocol-0920-ru'));
   for (const dir of ['en-ru', 'ru-en']) assert.ok(corpus.cases.filter((item) => item.dir === dir).length >= 5);
 });
+
+test('acceptance summary shows every run with its outcome and failed checks', async () => {
+  const { renderSummary } = await import('../tools/acceptance-summary.mjs');
+  const text = renderSummary({
+    commit: 'abc', environment: { backend: 'ONNX CPU q8' }, summary: { pass: 1, fail: 1, rejected: 1 },
+    results: [
+      { case: 'a', mode: 'normal', automated: 'pass', input: 'Hi.', outputs: [{ output: 'Привет.', checks: { sentence_count: { ok: true } } }] },
+      { case: 'b', mode: 'back-check', automated: 'fail', input: 'A | B.', outputs: [{ output: 'А.', checks: { sentence_count: { ok: false } } }], back_translation: 'A.' },
+      { case: 'c', mode: 'three-forms', automated: 'rejected', input: 'x', rejected: 'gate' },
+    ],
+  });
+  assert.match(text, /1 pass · 1 fail · 1 rejected/u);
+  assert.match(text, /\| b \| back-check \| fail \| A \\\| B\. \| А\. ↩ A\. \| sentence_count \|/u);
+  assert.match(text, /отклонено: gate/u);
+});
