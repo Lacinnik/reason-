@@ -1,0 +1,27 @@
+name: RTE acceptance evidence (CPU)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  evidence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install pinned Transformers.js
+        run: npm install --no-save @huggingface/transformers@3.7.2
+      - name: Run acceptance corpus
+        run: node tools/acceptance-cpu.mjs acceptance-report.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: rte-acceptance-report
+          path: acceptance-report.json
+          if-no-files-found: ignore
