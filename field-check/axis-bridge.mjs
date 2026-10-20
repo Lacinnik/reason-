@@ -1,5 +1,6 @@
 export const AXIS_HANDOFF_SCHEMA = "architectonica.axis-handoff/1.0.0";
 export const AXIS_RETURN_SCHEMA = "architectonica.axis-return/1.0.0";
+export const ECOSYSTEM_EXCHANGE_SCHEMA = "architectonica.ecosystem-exchange/1.0.0";
 const MAX_TOKEN_LENGTH = 16000;
 const limits = { object:500, subject_manifestation:1200, reflected_image:1200, target_relation:1200, context:1200, next_action:1200, invariant:1200 };
 const clean = value => typeof value === "string" ? value.trim() : "";
@@ -51,6 +52,15 @@ export function createAxisReturn(handoff,decision,environment={}) {
   const makeId=environment.uuid??(()=>globalThis.crypto?.randomUUID?.()||`return-${Date.now()}-${Math.random().toString(16).slice(2)}`);
   return {schema:AXIS_RETURN_SCHEMA,id:makeId(),created_at:new Date(now).toISOString(),producer:"reson-field-check",recipient:"gdeya-axis",handoff_id:handoff.id,
     field_decision_id:decision.id,object:decision.shared_object,allow:decision.allow,links_verified:decision.links_verified,gate:decision.gate,q:null};
+}
+
+export function createExchangeRecord(record, product = "reson-field-check", environment = {}) {
+  if (!record || typeof record.schema !== "string" || !validId(record.id)) throw new Error("INVALID_EXCHANGE_RECORD");
+  const now = environment.now ?? Date.now();
+  const makeId = environment.uuid ?? (() => globalThis.crypto?.randomUUID?.() || `exchange-${Date.now()}-${Math.random().toString(16).slice(2)}`);
+  return { schema: ECOSYSTEM_EXCHANGE_SCHEMA, id: makeId(), created_at: new Date(now).toISOString(),
+    source: { ecosystem: "architectonica", product, repository: "reason-", record_schema: record.schema, record_id: record.id },
+    payload: record, evidence_class: "none", verified: false };
 }
 
 export function buildGdeyaReturnUrl(handoff,returned,base="https://lacinnik.github.io/Game-GDEYA/labs/axis-cycle/") {
