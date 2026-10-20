@@ -109,7 +109,7 @@
     <p class="reading" id="reading"></p>
     <p class="help-note">Игровой результат, не психологическая диагностика. Внешний возврат Q не измерялся.</p>
     <p class="help-note" id="saveStatus" role="status"></p>
-    <div class="end-actions"><button class="primary" id="again">НОВЫЙ ПРОХОД</button><button class="secondary" id="share">СОХРАНИТЬ РЕЗУЛЬТАТ</button></div>
+    <div class="end-actions"><button class="primary" id="again">НОВЫЙ ПРОХОД</button><button class="secondary" id="share">СОХРАНИТЬ РЕЗУЛЬТАТ</button><button class="secondary" id="exportTrace">ЭКСПОРТ СЛЕДА JSON</button></div>
     <p class="help-note" id="shareStatus" role="status"></p>
     <textarea id="shareText" aria-label="Текст игрового результата для ручного копирования" readonly hidden rows="7" style="width:100%;box-sizing:border-box;padding:12px"></textarea>
   </section>
@@ -141,7 +141,7 @@
   function show(id){$$('.screen').forEach(x=>x.classList.toggle('active',x.id===id));if(id!=='help')lastScreen=id}
   function openHelp(intent){helpIntent=intent;$('#closeHelp').textContent=intent==='return'?'ВЕРНУТЬСЯ К УЗЛУ':'НАЧАТЬ ПРОХОД';show('help');$('#help .help-card').scrollTop=0}
   function shuffle(a){return a.map(v=>[Math.random(),v]).sort((a,b)=>a[0]-b[0]).map(v=>v[1])}
-  function newGame(){$('#shareStatus').textContent='';$('#shareText').value='';$('#shareText').hidden=true;state={axis:72,measure:64,grad:0,i:0,log:[],deck:shuffle(nodes).slice(0,8)};selectedG=selectedO=null;show('game');render()}
+  function newGame(){$('#shareStatus').textContent='';$('#shareText').value='';$('#shareText').hidden=true;state={axis:72,measure:64,grad:0,i:0,log:[],deck:shuffle(nodes).slice(0,8)};window.axisGameTrace=null;selectedG=selectedO=null;show('game');render()}
   function renderChoices(){
     $('#geometries').innerHTML=G.map(([id,s,n])=>`<button class="choice ${selectedG===id?'selected':''}" data-g="${id}"><i>${s}</i><span>${n}</span></button>`).join('');
     $('#operators').innerHTML=O.map(([id,s,n])=>`<button class="choice ${selectedO===id?'selected':''}" data-o="${id}"><i>${s}</i><span>${n}</span></button>`).join('');
@@ -168,6 +168,7 @@
   }
   function finish(){
     const balance=100-Math.abs(state.axis-state.grad)*.55, avg=state.log.reduce((s,x)=>s+x.quality,0)/(state.log.length*4)*100;state.score=clamp(state.axis*.35+state.measure*.2+state.grad*.2+balance*.1+avg*.15);
+    state.trace={schema:'architectonica.axis-game-trace/1.0.0',id:`axis-game-${Date.now()}-${Math.random().toString(16).slice(2)}`,created_at:new Date().toISOString(),producer:'reson-axis-game',score:state.score,axis:state.axis,measure:state.measure,gradient:state.grad,turns:state.log.map(turn=>({...turn})),q:null,evidence_status:'simulated',verified:false};window.axisGameTrace=state.trace;
     let title,read;if(state.score>=85){title='ИНВАРИАНТ ПРОВЕДЁН';read='Ты усилил позицию, не отдав ось градиенту. Воздействие сохранило меру, а движение осталось сообразным сущему.'}else if(state.score>=68){title='ПОЗИЦИЯ СОБРАНА';read='Ось выдержала прохождение. В отдельных узлах скорость движения опережала различение, но поле сохранило проводимость.'}else if(state.score>=48){title='ОСЬ ТРЕБУЕТ СБОРКИ';read='Градиент возник, однако часть движения оплачена потерей несущей способности. Следующий проход начни с различения геометрии.'}else{title='ПОЛЕ ЗАХВАТИЛО ПОЗИЦИЮ';read='Решения отвечали на давление искажений, а не на инвариант. Это не поражение: теперь виден сам механизм сноса.'}
     $('#endTitle').textContent=title;$('#score').textContent=state.score;$('#reading').textContent=read;$('#scoreRing').style.background=`conic-gradient(var(--cyan) ${state.score*3.6}deg,#133543 0)`;
     show('end');
@@ -200,14 +201,16 @@
       }
     }finally{$('#share').disabled=false;}
   }
+  function exportTrace(){if(!state?.trace)return;const url=URL.createObjectURL(new Blob([JSON.stringify(state.trace,null,2)],{type:'application/json'}));const link=document.createElement('a');link.href=url;link.download=`axis-game-${state.trace.id}.json`;link.hidden=true;document.body.append(link);link.click();setTimeout(()=>{link.remove();URL.revokeObjectURL(url)},1000)}
   function toast(){const t=$('#toast');t.classList.add('on');setTimeout(()=>t.classList.remove('on'),1700)}
-  $('#start').onclick=()=>openHelp('start');$('#rulesLink').onclick=()=>openHelp('start');$('#gameHelp').onclick=()=>openHelp('return');$('#again').onclick=newGame;$('#resolve').onclick=resolve;$('#next').onclick=()=>{if(!state||state.i>=state.deck.length||state.log.length!==state.i+1)return;if(++state.i>=state.deck.length)finish();else render()};$('#share').onclick=share;
+  $('#start').onclick=()=>openHelp('start');$('#rulesLink').onclick=()=>openHelp('start');$('#gameHelp').onclick=()=>openHelp('return');$('#again').onclick=newGame;$('#resolve').onclick=resolve;$('#next').onclick=()=>{if(!state||state.i>=state.deck.length||state.log.length!==state.i+1)return;if(++state.i>=state.deck.length)finish();else render()};$('#share').onclick=share;$('#exportTrace').onclick=exportTrace;
   $('#closeHelp').onclick=()=>helpIntent==='start'?newGame():show(lastScreen);
   const c=$('#field'),ctx=c.getContext('2d');let W,H,t=0,particles=[];
   function size(){const d=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;c.width=W*d;c.height=H*d;c.style.width=W+'px';c.style.height=H+'px';ctx.setTransform(d,0,0,d,0,0);particles=Array.from({length:34},()=>({a:Math.random()*7,r:50+Math.random()*Math.min(W,H)*.65,s:(Math.random()-.5)*.002,z:.4+Math.random()*1.4}))}
   function draw(){t++;ctx.clearRect(0,0,W,H);const cx=W/2,cy=H*.39,axis=window.fieldState?.axis||72,grad=window.fieldState?.grad||12;particles.forEach(p=>{p.a+=p.s*(1+grad/70);const x=cx+Math.cos(p.a)*p.r,y=cy+Math.sin(p.a*1.13)*p.r*.75;ctx.fillStyle=`rgba(90,213,218,${.05*p.z})`;ctx.beginPath();ctx.arc(x,y,p.z,0,7);ctx.fill()});ctx.save();ctx.translate(cx,cy);ctx.rotate(Math.sin(t/180)*.05*(1-axis/120));for(let i=0;i<3;i++){ctx.strokeStyle=`rgba(${i===1?'242,205,120':'83,213,217'},${.07+i*.025})`;ctx.lineWidth=1;ctx.beginPath();ctx.ellipse(0,0,75+i*58,28+i*35,Math.sin(t/220+i)*.2,0,Math.PI*2);ctx.stroke()}ctx.restore();requestAnimationFrame(draw)}
-  addEventListener('resize',size);size();draw();
+  addEventListener('resize',size);size();draw();if('serviceWorker'in navigator)navigator.serviceWorker.register('../sw.js').catch(()=>{});
 })();
 </script>
+<script type="module" src="../exchange-panel.mjs?v=exchange-20261021-r1"></script>
 </body>
 </html>
