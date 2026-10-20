@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lacinnik.github.io/reason-/exchange.schema.json",
+  "title": "Architectonica Ecosystem Exchange Record",
+  "type": "object",
+  "required": ["schema", "id", "created_at", "source", "payload", "evidence_class", "verified"],
+  "properties": {
+    "schema": { "const": "architectonica.ecosystem-exchange/1.0.0" },
+    "id": { "type": "string", "minLength": 8, "maxLength": 200 },
+    "created_at": { "type": "string", "format": "date-time" },
+    "source": {
+      "type": "object",
+      "required": ["ecosystem", "product", "record_schema", "record_id"],
+      "properties": {
+        "ecosystem": { "const": "architectonica" },
+        "product": { "type": "string" },
+        "repository": { "type": "string" },
+        "record_schema": { "type": "string" },
+        "record_id": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "payload": { "type": "object", "required": ["schema"], "anyOf": [{ "required": ["id"] }, { "required": ["handoffId"] }] },
+    "evidence_class": { "enum": ["none", "self-reported", "documented", "independent-observation"] },
+    "verified": { "const": false }
+  },
+  "additionalProperties": false
+}

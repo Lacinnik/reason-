@@ -1,5 +1,5 @@
 const VERSION = '2.0.0';
-const CACHE_REVISION = 'axis-bridge-20261020-r1';
+const CACHE_REVISION = 'ecosystem-exchange-20261021-r1';
 const SHELL_CACHE = `rte-shell-${VERSION}-${CACHE_REVISION}`;
 const RUNTIME_CACHE = `rte-runtime-${VERSION}-${CACHE_REVISION}`;
 const PINNED_TRANSFORMERS = 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.7.2';
@@ -15,20 +15,25 @@ const SHELL = [
   './vendor/transformers-3.7.2.js',
   './tzar-language-001.mjs',
   './local-journal.mjs',
+  './exchange-panel.mjs?v=exchange-20261021-r1',
+  './exchange.schema.json',
+  './EXCHANGE.md',
   './field-check/runtime.mjs',
   './tzar-language.profiles.json',
   './module/catalog.mjs',
   './field-check/',
   './field-check/index.html',
   './field-check/styles.css',
-  './field-check/app.js?v=axis-bridge-20261020-r1',
-  './field-check/axis-bridge.mjs?v=axis-bridge-20261020-r1',
+  './field-check/app.js?v=axis-bridge-20261021-r2',
+  './field-check/axis-bridge.mjs?v=axis-bridge-20261021-r2',
   './transmissions/',
   './transmissions/index.html',
   './transmissions/styles.css',
   './transmissions/app.mjs?v=transmissions-voices-20260923-r1',
   './transmissions/catalog.mjs',
   './transmissions/runtime.mjs?v=transmissions-voices-20260923-r1',
+  './axis-game/',
+  './axis-game/index.html',
 ];
 
 self.addEventListener('install', (event) => {

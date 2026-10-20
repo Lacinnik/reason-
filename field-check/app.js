@@ -1,7 +1,7 @@
 import { persistValue } from "../local-journal.mjs";
 import { assessField } from "./runtime.mjs";
 import { compileTzarLanguage } from "../tzar-language-001.mjs";
-import { axisFromHash, buildGdeyaReturnUrl, createAxisReturn } from "./axis-bridge.mjs?v=axis-bridge-20261020-r1";
+import { axisFromHash, buildGdeyaReturnUrl, createAxisReturn, createExchangeRecord } from "./axis-bridge.mjs?v=axis-bridge-20261021-r2";
 
 (() => {
   const state = { title: "", subjects: [], decision: null, axisHandoff: null };
@@ -142,6 +142,7 @@ import { axisFromHash, buildGdeyaReturnUrl, createAxisReturn } from "./axis-brid
       $("#axis-return").href = buildGdeyaReturnUrl(state.axisHandoff, returned);
       $("#axis-return").hidden = false;
     } else $("#axis-return").hidden = true;
+    $("#export-exchange").hidden = false;
   }
 
   function revise() {
@@ -176,6 +177,12 @@ import { axisFromHash, buildGdeyaReturnUrl, createAxisReturn } from "./axis-brid
     downloadJson(`reson-field-${state.decision.id}.json`, state.decision);
   }
 
+  function exportExchange() {
+    if (!state.decision) return;
+    const returned = state.axisHandoff ? createAxisReturn(state.axisHandoff, state.decision) : state.decision;
+    downloadJson(`architectonica-exchange-${returned.id}.json`, createExchangeRecord(returned));
+  }
+
   $("#field-title").addEventListener("input", validateSetup);
   $("#participants").addEventListener("input", validateSetup);
   $("#build").addEventListener("click", buildField);
@@ -183,6 +190,7 @@ import { axisFromHash, buildGdeyaReturnUrl, createAxisReturn } from "./axis-brid
   $("#revise").addEventListener("click", revise);
   $("#restart").addEventListener("click", restart);
   $("#export").addEventListener("click", exportDecision);
+  $("#export-exchange").addEventListener("click", exportExchange);
   loadAxisHandoff();
   validateSetup();
   if ("serviceWorker" in navigator) navigator.serviceWorker.register("../sw.js").catch(() => {});

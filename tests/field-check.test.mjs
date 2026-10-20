@@ -26,8 +26,10 @@ test('Collective Field Check ships a complete local decision flow', async () => 
   assert.match(js, /setTimeout\(\(\) =>/u);
   assert.match(js, /serviceWorker\.register\("\.\.\/sw\.js"\)/u);
   assert.match(js, /createAxisReturn/u);
+  assert.match(js, /createExchangeRecord/u);
   assert.match(html, /id="axis-incoming"/u);
   assert.match(html, /id="axis-return"/u);
+  assert.match(html, /id="export-exchange"/u);
   assert.match(css, /-webkit-appearance:none/u);
 });
 
