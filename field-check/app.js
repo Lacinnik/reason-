@@ -1,9 +1,10 @@
 import { persistValue } from "../local-journal.mjs";
 import { assessField } from "./runtime.mjs";
 import { compileTzarLanguage } from "../tzar-language-001.mjs";
+import { axisFromHash, buildGdeyaReturnUrl, createAxisReturn } from "./axis-bridge.mjs?v=axis-bridge-20261020-r1";
 
 (() => {
-  const state = { title: "", subjects: [], decision: null };
+  const state = { title: "", subjects: [], decision: null, axisHandoff: null };
   const $ = selector => document.querySelector(selector);
   const cleanNames = value => {
     const seen = new Set();
@@ -35,6 +36,23 @@ import { compileTzarLanguage } from "../tzar-language-001.mjs";
     $("#build").disabled = !valid;
     const participantHint = names.length > 6 ? "укажите не более 6 участников" : `${names.length} из 2–6 участников`;
     $("#setup-hint").textContent = `${participantHint} · ${title.length >= 3 ? "общий объект назван" : "назовите общий объект"}`;
+  }
+
+  function loadAxisHandoff() {
+    const result = axisFromHash(location.hash);
+    if (!result.ok) return;
+    state.axisHandoff = result.handoff;
+    const rows = [
+      ["O · объект", result.handoff.object], ["S · проявление", result.handoff.subject_manifestation], ["I · образ", result.handoff.reflected_image],
+      ["R_g · отношение", result.handoff.target_relation], ["C · контекст", result.handoff.context], ["Следующий шаг", result.handoff.next_action], ["Инвариант", result.handoff.invariant],
+    ];
+    $("#axis-details").replaceChildren(...rows.map(([label, value]) => {
+      const row = document.createElement("div"), dt = document.createElement("dt"), dd = document.createElement("dd");
+      dt.textContent = label; dd.textContent = value; row.append(dt, dd); return row;
+    }));
+    $("#axis-incoming").hidden = false;
+    $("#field-title").value = result.handoff.object;
+    $("#field-title").readOnly = true;
   }
 
   function buildField() {
@@ -83,6 +101,7 @@ import { compileTzarLanguage } from "../tzar-language-001.mjs";
       allow,
       synthesis_ready: allow,
       q: null,
+      axis_handoff_id: state.axisHandoff?.id ?? null,
     };
     const links = state.subjects.map(subject => `${subject.name} → ${state.subjects.find(item => item.id === subject.trustTo)?.name || "связь не предъявлена"}`).join("; ");
     decision.language = compileTzarLanguage({
@@ -118,6 +137,11 @@ import { compileTzarLanguage } from "../tzar-language-001.mjs";
     $("#decision-copy").textContent = decision.allow ? "Оператор указал связи и оценки для каждого участника; средние α, Q̂ и T удерживают порог 0.75. Это не независимая проверка согласия или эффективности. Q остаётся null." : decision.gate === "trust" ? "У каждого участника должна быть явно выбрана связь с другим голосом поля; Q остаётся null." : decision.gate === "missing-metrics" ? "Заполните все оценки явно: пустые поля сохраняются как null, а не как ноль или порог допуска." : "Связи предъявлены, но хотя бы одна предварительная метрика ниже порога 0.75; Q остаётся null.";
     $("#metrics").innerHTML = [...Object.entries(decision.avg_metrics), ["Q", null]].map(([key, value]) => `<div><span>${key}</span><b>${value == null ? "null" : value.toFixed(2)}</b></div>`).join("");
     $("#evidence").innerHTML = `<div><span>Слово поля</span><b>${escapeHtml(decision.language.layers.publicStatement)}</b></div><div><span>Сингулярная формула</span><b>${escapeHtml(decision.language.formula)}</b></div><div><span>Связи доверия</span><b>${decision.links_verified ? "предъявлены" : "неполны"}</b></div><div><span>Ворота решения</span><b>${decision.gate}</b></div><div><span>Общий объект</span><b>${escapeHtml(decision.shared_object)}</b></div><div><span>Хранение</span><b>локально</b></div>`;
+    if (state.axisHandoff) {
+      const returned = createAxisReturn(state.axisHandoff, decision);
+      $("#axis-return").href = buildGdeyaReturnUrl(state.axisHandoff, returned);
+      $("#axis-return").hidden = false;
+    } else $("#axis-return").hidden = true;
   }
 
   function revise() {
@@ -128,7 +152,7 @@ import { compileTzarLanguage } from "../tzar-language-001.mjs";
 
   function restart() {
     state.title = ""; state.subjects = []; state.decision = null;
-    $("#field-title").value = ""; $("#participants").value = "";
+    $("#field-title").value = state.axisHandoff?.object ?? ""; $("#participants").value = "";
     $("#storage-error").textContent = ""; validateSetup(); setStage("setup");
   }
 
@@ -159,5 +183,7 @@ import { compileTzarLanguage } from "../tzar-language-001.mjs";
   $("#revise").addEventListener("click", revise);
   $("#restart").addEventListener("click", restart);
   $("#export").addEventListener("click", exportDecision);
+  loadAxisHandoff();
+  validateSetup();
   if ("serviceWorker" in navigator) navigator.serviceWorker.register("../sw.js").catch(() => {});
 })();
