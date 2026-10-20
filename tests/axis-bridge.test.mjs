@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { axisFromHash, buildGdeyaReturnUrl, createAxisReturn, encodeEnvelope, validateAxisHandoff } from "../field-check/axis-bridge.mjs";
+import { axisFromHash, buildGdeyaReturnUrl, createAxisReturn, createExchangeRecord, encodeEnvelope, validateAxisHandoff } from "../field-check/axis-bridge.mjs";
 
 const handoff={schema:"architectonica.axis-handoff/1.0.0",id:"handoff-12345678",created_at:new Date(0).toISOString(),producer:"gdeya",recipient:"reson-field-check",
   object:"Запуск общего проекта",subject_manifestation:"Автор удерживает личную ось",reflected_image:"Мост между субъектом и полем",target_relation:"Предъявить объект без передачи авторства",
@@ -28,4 +28,13 @@ test("RESON return keeps Q null and is linked to the exact handoff",()=>{
 test("axis bridge rejects changed objects",()=>{
   const decision={schema:"reson.collective-meta-decision/1.1.0",id:"field-12345678",shared_object:"Другой объект",q:null,allow:false,links_verified:false,gate:"trust"};
   assert.throws(()=>createAxisReturn(handoff,decision),/AXIS_DECISION_MISMATCH/u);
+});
+
+test("REZON exports its legacy decision in the ecosystem exchange envelope",()=>{
+  const decision={schema:"reson.collective-meta-decision/1.1.0",id:"field-12345678",q:null};
+  const envelope=createExchangeRecord(decision,"reson-field-check",{now:2000,uuid:()=>"exchange-12345678"});
+  assert.equal(envelope.schema,"architectonica.ecosystem-exchange/1.0.0");
+  assert.equal(envelope.payload,decision);
+  assert.equal(envelope.source.record_id,decision.id);
+  assert.equal(envelope.verified,false);
 });
