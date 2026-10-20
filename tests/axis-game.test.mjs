@@ -21,9 +21,9 @@ function harness(storage = new Map()) {
   const geometries = ['euclid', 'lob', 'riemann', 'projective', 'supra'].map(g => Object.assign(element(g), { dataset: { g } }));
   const operators = ['measure', 'love', 'axis', 'discern'].map(o => Object.assign(element(o), { dataset: { o } }));
   const screens = ['intro', 'game', 'help', 'end'].map(element);
-  const context = { document: { querySelector: s => element(s), querySelectorAll: s => s === '.screen' ? screens : s === '[data-g]' ? geometries : s === '[data-o]' ? operators : [] },
+  const context = { document: { querySelector: s => element(s), querySelectorAll: s => s === '.screen' ? screens : s === '[data-g]' ? geometries : s === '[data-o]' ? operators : [], createElement: () => ({ click() {}, remove() {} }), body: { append() {} } },
     localStorage: { getItem: k => storage.get(k) ?? null, setItem: (k,v) => storage.set(k,v) },
-    navigator: {}, innerWidth: 400, innerHeight: 800, devicePixelRatio: 1,
+    navigator: {}, Blob: class Blob {}, URL: { createObjectURL: () => 'blob:trace', revokeObjectURL() {} }, innerWidth: 400, innerHeight: 800, devicePixelRatio: 1,
     addEventListener() {}, requestAnimationFrame() {}, setTimeout() {},
   };
   context.window = context;
@@ -54,6 +54,10 @@ test('AXIS completes exactly eight nodes and preserves a bounded score', () => {
   assert.ok(h.context.fieldState.score >= 0 && h.context.fieldState.score <= 100);
   h.element('#next').onclick();
   assert.equal(h.context.fieldState.i, 8);
+  assert.equal(h.context.axisGameTrace.schema, 'architectonica.axis-game-trace/1.0.0');
+  assert.equal(h.context.axisGameTrace.q, null);
+  assert.equal(h.context.axisGameTrace.evidence_status, 'simulated');
+  h.element('#exportTrace').onclick();
   assert.match(h.element('#saveStatus').textContent, /сохранён/);
 });
 
